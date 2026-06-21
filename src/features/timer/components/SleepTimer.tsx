@@ -1,0 +1,103 @@
+import React, { useState } from 'react';
+import { Moon, Play, Square, Sparkles } from 'lucide-react';
+
+interface SleepTimerProps {
+  isActive: boolean;
+  onStartTimer: (minutes: number, fadeOut: boolean) => void;
+  onCancelTimer: () => void;
+  remainingSeconds: number;
+  fadeOutEnabled: boolean;
+}
+
+export const SleepTimer: React.FC<SleepTimerProps> = ({
+  isActive,
+  onStartTimer,
+  onCancelTimer,
+  remainingSeconds,
+  fadeOutEnabled,
+}) => {
+  const [minutes, setMinutes] = useState(15);
+  const [fadeOut, setFadeOut] = useState(true);
+
+  const formatTime = (secs: number) => {
+    const m = Math.floor(secs / 60);
+    const s = secs % 60;
+    return `${m}:${s.toString().padStart(2, '0')}`;
+  };
+
+  const handleStart = () => {
+    onStartTimer(minutes, fadeOut);
+  };
+
+  return (
+    <div className="space-y-3.5 p-4 bg-white/[0.02] border border-white/5 rounded-2xl">
+      <div className="flex items-center justify-between">
+        <label className="text-[11px] font-semibold uppercase tracking-wider text-[#9a968c] flex items-center gap-1.5 font-display">
+          <Moon className="w-3.5 h-3.5 text-indigo-400" />
+          Temporizador de apagado
+        </label>
+        {isActive && (
+          <span className="text-xs font-mono text-indigo-400 animate-pulse">
+            Activo · {formatTime(remainingSeconds)}
+          </span>
+        )}
+      </div>
+
+      {!isActive ? (
+        <div className="space-y-3">
+          <div className="flex gap-2">
+            {[15, 30, 45, 60].map((t) => (
+              <button
+                key={t}
+                onClick={() => setMinutes(t)}
+                className={`flex-1 py-1.5 text-xs font-medium rounded-lg border transition-all ${
+                  minutes === t
+                    ? 'bg-indigo-500/10 border-indigo-400/30 text-indigo-200'
+                    : 'bg-white/5 border-white/5 text-[#9a968c] hover:bg-white/10'
+                }`}
+              >
+                {t} min
+              </button>
+            ))}
+          </div>
+
+          <label className="flex items-center gap-2 cursor-pointer select-none group text-xs text-[#9a968c] hover:text-[#f5f2ea] transition-colors">
+            <input
+              type="checkbox"
+              checked={fadeOut}
+              onChange={(e) => setFadeOut(e.target.checked)}
+              className="accent-indigo-500 w-3.5 h-3.5"
+            />
+            <span className="flex items-center gap-1">
+              Desvanecimiento gradual (Fade-out)
+              <Sparkles className="w-3 h-3 text-indigo-400/80" />
+            </span>
+          </label>
+
+          <button
+            onClick={handleStart}
+            className="w-full py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 transition-all shadow-[0_0_12px_rgba(99,102,241,0.2)]"
+          >
+            <Play className="w-3.5 h-3.5 fill-current" />
+            Iniciar temporizador
+          </button>
+        </div>
+      ) : (
+        <div className="space-y-2">
+          <p className="text-xs text-[#9a968c] leading-relaxed">
+            La lámpara se apagará en{' '}
+            <span className="font-semibold text-white">{formatTime(remainingSeconds)}</span>
+            {fadeOutEnabled && ' reduciendo el brillo paulatinamente.'}
+          </p>
+          <button
+            onClick={onCancelTimer}
+            className="w-full py-2 bg-white/5 hover:bg-white/10 border border-white/10 text-white rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 transition-all"
+          >
+            <Square className="w-3.5 h-3.5 fill-current" />
+            Cancelar temporizador
+          </button>
+        </div>
+      )}
+    </div>
+  );
+};

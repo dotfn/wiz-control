@@ -7,9 +7,9 @@ export default {
   theme: {
     extend: {
       fontFamily: {
-        display: ['SpaceGrotesk', 'InterVariable', 'sans-serif'],
-        sans: ['InterVariable', 'sans-serif'],
-        mono: ['JetBrainsMono', 'monospace'],
+        display: ['-apple-system', 'BlinkMacSystemFont', 'SF Pro Display', 'SF Pro Text', 'system-ui', 'sans-serif'],
+        sans: ['-apple-system', 'BlinkMacSystemFont', 'SF Pro Text', 'system-ui', 'sans-serif'],
+        mono: ['SF Mono', 'Monaco', 'Consolas', 'monospace'],
       },
     },
   },
