@@ -1,6 +1,7 @@
-import { invoke } from '@tauri-apps/api/core';
-import { listen, UnlistenFn } from '@tauri-apps/api/event';
-import { GetStateResponse, DiscoverDeviceResponse, PreferencesResponse, LightState } from '../types';
+import { isTauri } from '../utils/tauri';
+import { tauriDeviceService } from './tauri/deviceService';
+import { demoDeviceService } from './demo/deviceService';
+import { LightState } from '../types';
 
 export interface DeviceStatePayload {
   ip: string;
@@ -8,43 +9,6 @@ export interface DeviceStatePayload {
   state: LightState | null;
 }
 
-export const deviceService = {
-  async discover(): Promise<DiscoverDeviceResponse[]> {
-    return await invoke<DiscoverDeviceResponse[]>('discover');
-  },
-
-  async getState(ip: string): Promise<GetStateResponse> {
-    return await invoke<GetStateResponse>('get_state', { ip });
-  },
-
-  async control(ip: string, payload: Partial<LightState>): Promise<void> {
-    await invoke('control', {
-      ip,
-      state: payload.state,
-      dimming: payload.dimming,
-      temp: payload.temp,
-      r: payload.r,
-      g: payload.g,
-      b: payload.b,
-      sceneId: payload.sceneId,
-    });
-  },
-
-  async getPreferences(): Promise<PreferencesResponse> {
-    return await invoke<PreferencesResponse>('get_preferences');
-  },
-
-  async savePreferences(lastIp: string | null, theme?: string): Promise<void> {
-    await invoke('save_preferences', { lastIp, theme });
-  },
-
-  async saveDeviceName(ip: string, name: string): Promise<void> {
-    await invoke('save_device_name', { ip, name });
-  },
-
-  async subscribeToDeviceState(callback: (payload: DeviceStatePayload) => void): Promise<UnlistenFn> {
-    return await listen<DeviceStatePayload>('device-state-changed', (event) => {
-      callback(event.payload);
-    });
-  }
-};
+export const deviceService = isTauri() ? tauriDeviceService : demoDeviceService;
+export type DeviceServiceType = typeof tauriDeviceService;
+export type { UnlistenFn } from '@tauri-apps/api/event';
