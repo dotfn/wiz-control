@@ -41,10 +41,13 @@ pub fn run() {
             let initial_ip = initial_config.last_ip.clone();
             let initial_theme = initial_config.theme.clone();
 
-            // Registra los tres estados granulares de forma independiente.
+            // La `ShutdownSignal` se crea localmente, se registra en Tauri y se pasa
+            // directamente al monitor, evitando re-consultar `app.state()` después.
+            let shutdown_signal = Arc::new(AtomicBool::new(false));
+
             app.manage(ConfigState(std::sync::Mutex::new(initial_config)));
             app.manage(ActiveDeviceState(std::sync::Mutex::new(initial_ip)));
-            app.manage(ShutdownSignal(Arc::new(AtomicBool::new(false))));
+            app.manage(ShutdownSignal(shutdown_signal.clone()));
 
             // Establece el color de fondo de la ventana según el tema guardado,
             // evitando el parpadeo de color al inicio.
@@ -61,9 +64,8 @@ pub fn run() {
                 let _ = window.set_background_color(Some(color));
             }
 
-            // Recupera la señal de apagado ya registrada y arranca el monitor asíncrono.
-            let shutdown = app.state::<ShutdownSignal>().0.clone();
-            monitor::start_polling(app.handle().clone(), shutdown);
+            // Arranca el monitor asíncrono con la señal de apagado local.
+            monitor::start_polling(app.handle().clone(), shutdown_signal);
 
             Ok(())
         })

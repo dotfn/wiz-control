@@ -65,6 +65,10 @@ pub fn get_preferences(
 
 /// Guarda las preferencias del usuario (IP activa y tema) en disco y actualiza ambas cachés.
 /// Asíncrono: realiza I/O de disco (escritura atómica).
+///
+/// # Orden de locks
+/// `config_state` → `active_device`. Si en el futuro otro comando adquiere ambos locks,
+/// debe respetar este mismo orden para evitar deadlocks.
 #[tauri::command]
 pub async fn save_preferences(
     app: tauri::AppHandle,

@@ -43,6 +43,7 @@ export const useLightingStore = create<LightingState>((set, get) => ({
       // Rollback on failure
       set({ lampState: previousState, isConnected: false });
       useDeviceStore.getState().setConnectionStatus('Lámpara no responde');
+      console.error('Error al enviar comando de control:', e);
     }
   },
 
