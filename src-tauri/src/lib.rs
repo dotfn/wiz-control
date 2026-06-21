@@ -35,6 +35,12 @@ fn get_device_names(app: tauri::AppHandle) -> Result<HashMap<String, String>, St
 #[tauri::command]
 fn save_device_name(app: tauri::AppHandle, ip: String, name: String) -> Result<(), String> {
     validate_ip(&ip)?;
+    if ip.len() > 45 {
+        return Err("La dirección IP no puede superar los 45 caracteres".to_string());
+    }
+    if name.len() > 256 {
+        return Err("El nombre del dispositivo no puede superar los 256 caracteres".to_string());
+    }
     let path = get_config_path(&app)?;
     let mut config = if path.exists() {
         let content = fs::read_to_string(&path).map_err(|e| e.to_string())?;
@@ -132,6 +138,22 @@ fn control(
     b: Option<u8>,
     scene_id: Option<u8>,
 ) -> Result<Value, String> {
+    if let Some(d) = dimming {
+        if d < 10 || d > 100 {
+            return Err("El brillo debe estar entre 10 y 100".to_string());
+        }
+    }
+    if let Some(t) = temp {
+        if t < 2200 || t > 6500 {
+            return Err("La temperatura debe estar entre 2200K y 6500K".to_string());
+        }
+    }
+    if let Some(s_id) = scene_id {
+        if s_id < 1 || s_id > 32 {
+            return Err("El ID de escena debe estar entre 1 y 32".to_string());
+        }
+    }
+
     let mut params = serde_json::Map::new();
     if let Some(s) = state {
         params.insert("state".to_string(), serde_json::Value::Bool(s));
