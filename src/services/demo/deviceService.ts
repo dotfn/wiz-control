@@ -11,7 +11,7 @@ let mockLampState: LightState = {
   b: 84,
 };
 
-let deviceNames: Record<string, string> = {
+const deviceNames: Record<string, string> = {
   'virtual-lamp': 'Lámpara Virtual',
 };
 
