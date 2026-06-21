@@ -107,3 +107,51 @@ pub async fn discover_udp() -> Result<Vec<Value>, AppError> {
 
     Ok(found)
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn validate_ip_rejects_empty_string() {
+        let result = validate_ip("");
+        assert!(result.is_err());
+    }
+
+    #[test]
+    fn validate_ip_rejects_garbage() {
+        let result = validate_ip("not-an-ip");
+        assert!(result.is_err());
+    }
+
+    #[test]
+    fn validate_ip_rejects_out_of_range() {
+        let result = validate_ip("999.999.999.999");
+        assert!(result.is_err());
+    }
+
+    #[test]
+    fn validate_ip_accepts_ipv4_loopback() {
+        let result = validate_ip("127.0.0.1");
+        assert!(result.is_ok());
+        assert_eq!(result.unwrap(), IpAddr::V4(std::net::Ipv4Addr::new(127, 0, 0, 1)));
+    }
+
+    #[test]
+    fn validate_ip_accepts_ipv4_local() {
+        let result = validate_ip("192.168.1.100");
+        assert!(result.is_ok());
+    }
+
+    #[test]
+    fn validate_ip_accepts_ipv6_loopback() {
+        let result = validate_ip("::1");
+        assert!(result.is_ok());
+    }
+
+    #[test]
+    fn validate_ip_accepts_ipv6_full() {
+        let result = validate_ip("fe80::1");
+        assert!(result.is_ok());
+    }
+}

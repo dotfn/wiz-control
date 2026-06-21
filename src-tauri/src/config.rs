@@ -25,10 +25,16 @@ pub fn get_config_path(app: &tauri::AppHandle) -> Result<PathBuf, AppError> {
 /// sin sobrescribirlo con un estado vacío.
 pub fn read_config(app: &tauri::AppHandle) -> Result<AppConfig, AppError> {
     let path = get_config_path(app)?;
+    read_config_from_path(&path)
+}
+
+/// Ídem que `read_config` pero opera directamente sobre una ruta,
+/// sin depender de `AppHandle`. Útil para tests.
+pub fn read_config_from_path(path: &PathBuf) -> Result<AppConfig, AppError> {
     if !path.exists() {
         return Ok(AppConfig::default());
     }
-    let content = fs::read_to_string(&path).map_err(|e| AppError::Config(e.to_string()))?;
+    let content = fs::read_to_string(path).map_err(|e| AppError::Config(e.to_string()))?;
     let config: AppConfig =
         serde_json::from_str(&content).map_err(|e| AppError::Config(e.to_string()))?;
     Ok(config)
@@ -81,4 +87,96 @@ pub fn write_config(path: &PathBuf, config: &AppConfig) -> Result<(), AppError> 
     fs::rename(&tmp_path, path).map_err(|e| AppError::Config(e.to_string()))?;
 
     Ok(())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::sync::atomic::{AtomicU32, Ordering};
+
+    static TEST_COUNTER: AtomicU32 = AtomicU32::new(0);
+
+    fn unique_test_path(name: &str) -> PathBuf {
+        let mut path = std::env::temp_dir();
+        let id = TEST_COUNTER.fetch_add(1, Ordering::Relaxed);
+        path.push(format!("wiz_control_test_{}_{}.json", name, id));
+        // Limpia residuos de ejecuciones abortadas
+        let _ = fs::remove_file(&path);
+        let _ = fs::remove_file(path.with_extension("json.tmp"));
+        path
+    }
+
+    #[test]
+    fn read_config_returns_default_when_file_missing() {
+        let path = unique_test_path("missing");
+        let config = read_config_from_path(&path).unwrap();
+        assert!(config.device_names.is_empty());
+        assert!(config.last_ip.is_none());
+        assert!(config.theme.is_none());
+    }
+
+    #[test]
+    fn write_and_read_roundtrip() {
+        let path = unique_test_path("roundtrip");
+        let mut config = AppConfig::default();
+        config.last_ip = Some("192.168.1.42".to_string());
+        config.theme = Some("dark".to_string());
+        config
+            .device_names
+            .insert("192.168.1.42".to_string(), "Escritorio".to_string());
+
+        write_config(&path, &config).unwrap();
+
+        let loaded = read_config_from_path(&path).unwrap();
+        assert_eq!(loaded.last_ip, Some("192.168.1.42".to_string()));
+        assert_eq!(loaded.theme, Some("dark".to_string()));
+        assert_eq!(
+            loaded.device_names.get("192.168.1.42"),
+            Some(&"Escritorio".to_string())
+        );
+
+        fs::remove_file(&path).ok();
+    }
+
+    #[test]
+    fn write_config_is_atomic_cleanup() {
+        let path = unique_test_path("atomic_cleanup");
+        let config = AppConfig::default();
+
+        write_config(&path, &config).unwrap();
+
+        // Verifica que el archivo .tmp no exista tras la escritura exitosa
+        let tmp_path = path.with_extension("json.tmp");
+        assert!(!tmp_path.exists());
+
+        // Verifica que config.json sí exista
+        assert!(path.exists());
+
+        fs::remove_file(&path).ok();
+    }
+
+    #[test]
+    fn read_config_propagates_corrupt_json() {
+        let path = unique_test_path("corrupt");
+        fs::write(&path, "{corrupt json}").unwrap();
+
+        let result = read_config_from_path(&path);
+        assert!(result.is_err());
+
+        fs::remove_file(&path).ok();
+    }
+
+    #[test]
+    fn write_config_empty_device_names() {
+        let path = unique_test_path("empty");
+        let config = AppConfig::default();
+
+        write_config(&path, &config).unwrap();
+
+        let loaded = read_config_from_path(&path).unwrap();
+        assert!(loaded.device_names.is_empty());
+        assert!(loaded.last_ip.is_none());
+
+        fs::remove_file(&path).ok();
+    }
 }

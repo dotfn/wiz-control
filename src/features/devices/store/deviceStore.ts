@@ -32,6 +32,18 @@ export const useDeviceStore = create<DeviceState>((set, get) => ({
       names = prefs.device_names;
       savedIp = prefs.last_ip;
       set({ deviceNames: names });
+
+      // Sync theme from backend if localStorage is empty
+      // (first launch or storage cleared).
+      if (!localStorage.getItem('theme') && prefs.theme) {
+        const theme = prefs.theme as 'light' | 'dark';
+        localStorage.setItem('theme', theme);
+        if (theme === 'dark') {
+          document.documentElement.classList.add('dark');
+        } else {
+          document.documentElement.classList.remove('dark');
+        }
+      }
     } catch (e) {
       console.error('Failed to load preferences', e);
     }
