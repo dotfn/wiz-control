@@ -93,24 +93,44 @@ Las bombillas escuchan en el puerto **38899**. La app implementa el protocolo di
 
 ## Instalación
 
-### Descargar
+### One-liner (recomendado)
 
-Descargá el instalador para macOS desde la página de [**Releases**](../../releases) del repositorio.
+Copia y pega esto en la Terminal:
+
+```bash
+bash -c "$(curl -fsSL https://raw.githubusercontent.com/dotfn/lumus-control/main/install.sh)"
+```
+
+El script detecta automáticamente tu arquitectura (Apple Silicon / Intel), descarga el DMG correcto desde GitHub, lo instala en `/Applications` y remueve el atributo de cuarentena para evitar el bloqueo de Gatekeeper.
+
+### Homebrew
+
+```bash
+brew tap dotfn/lumus
+brew install --cask lumus-control
+```
+
+### Descarga manual
+
+Descargá el DMG desde la página de [**Releases**](../../releases).
 
 | Plataforma | Archivo |
 |---|---|
-| macOS (Apple Silicon) | `lumus-control-macos-arm64.dmg` |
+| macOS (Apple Silicon) | `lumus-control_<version>_aarch64.dmg` |
+| macOS (Intel) | `lumus-control_<version>_x86_64.dmg` |
 
-### macOS — Abrir app sin firma
+Luego ejecutá en la Terminal:
 
-Como el proyecto no tiene Apple Developer Account, macOS bloqueará la app la primera vez. Para abrirla:
-
-**Opción 1 — Clic derecho:**
-> Clic derecho sobre `lumus-control.app` → **Abrir** → confirmar en el diálogo
-
-**Opción 2 — Terminal:**
 ```bash
-sudo xattr -rd com.apple.quarantine /Applications/lumus-control.app
+bash install.sh
+```
+
+### Build local
+
+```bash
+pnpm install
+pnpm tauri build
+bash install.sh
 ```
 
 ---
