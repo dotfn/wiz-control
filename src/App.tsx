@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Sparkles, Sun, LayoutDashboard, Palette, Clock, Settings } from 'lucide-react';
 import { getCurrentWebviewWindow } from '@tauri-apps/api/webviewWindow';
 import { kelvinToRgb } from './utils/color';
-import { WIZ_SCENES } from './features/lighting/components/SceneSelector';
+import { PRESET_SCENES } from './features/lighting/components/SceneSelector';
 
 // Stores
 import { useDeviceStore } from './features/devices/store/deviceStore';
@@ -11,7 +11,7 @@ import { useTimerStore } from './features/timer/store/timerStore';
 import { useSettingsStore } from './features/settings/store/settingsStore';
 
 // Hooks
-import { useWizLightEvents } from './features/lighting/hooks/useWizLightEvents';
+import { useLightEvents } from './features/lighting/hooks/useLightEvents';
 import { useSleepTimerCountdown } from './features/timer/hooks/useSleepTimerCountdown';
 
 // Components
@@ -59,7 +59,7 @@ export const App: React.FC = () => {
   } = useTimerStore();
 
   // Native events & timer side-effects (React hook lifecycle wrapper)
-  useWizLightEvents();
+  useLightEvents();
   useSleepTimerCountdown();
 
   const initTheme = useSettingsStore((state) => state.initTheme);
@@ -99,7 +99,7 @@ export const App: React.FC = () => {
 
     if (isOn) {
       if (lampState.sceneId !== undefined) {
-        const scene = WIZ_SCENES.find((s) => s.id === lampState.sceneId);
+        const scene = PRESET_SCENES.find((s) => s.id === lampState.sceneId);
         if (scene && scene.colors.length > 0) {
           // Parse hex of first color of the scene
           const hex = scene.colors[0];
@@ -159,7 +159,7 @@ export const App: React.FC = () => {
           <header className="flex items-center justify-between pb-4 border-b border-theme-border transition-colors duration-300">
             <div>
               <h1 className="font-display font-bold text-xl tracking-tight text-theme-text flex items-center gap-2 transition-colors duration-300">
-                WiZ Control
+                Lumus Control
                 {circadianActive && (
                   <span className="text-[10px] bg-blue-500/15 text-blue-500 border border-blue-500/30 px-1.5 py-0.5 rounded-md flex items-center gap-0.5 animate-bounce">
                     <Sparkles className="w-2.5 h-2.5" />

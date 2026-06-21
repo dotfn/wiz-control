@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
 import { Plus, Edit2, Check, Radio } from 'lucide-react';
-import { WizDevice } from '../../../types';
+import { LightDevice } from '../../../types';
 
 interface DeviceSelectorProps {
   selectedIp: string | null;
   onSelect: (ip: string) => void;
-  devices: WizDevice[];
+  devices: LightDevice[];
   onScan: () => Promise<void>;
   isScanning: boolean;
   onUpdateDeviceName: (ip: string, name: string) => void;
@@ -89,7 +89,7 @@ export const DeviceSelector: React.FC<DeviceSelectorProps> = ({
       <div className="space-y-2 max-h-48 overflow-y-auto custom-scrollbar pr-1">
         {devices.length === 0 ? (
           <p className="text-xs text-theme-textSecondary leading-relaxed transition-colors duration-300">
-            Presiona "Buscar" para escanear tu red local en busca de lámparas WiZ.
+            Presiona "Buscar" para escanear tu red local en busca de lámparas.
           </p>
         ) : (
           devices.map((device) => {
@@ -130,7 +130,7 @@ export const DeviceSelector: React.FC<DeviceSelectorProps> = ({
                   ) : (
                     <div className="flex flex-col">
                       <span className="font-semibold text-xs text-theme-text truncate transition-colors duration-300">
-                        {device.name || 'Lámpara WiZ'}
+                        {device.name || 'Lámpara'}
                       </span>
                       <span className="font-mono text-[10px] text-theme-textSecondary transition-colors duration-300">
                         {device.ip} {device.state?.state !== undefined && `· ${device.state.state ? 'Encendida' : 'Apagada'}`}

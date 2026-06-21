@@ -1,14 +1,14 @@
 import { invoke } from '@tauri-apps/api/core';
 import { listen, UnlistenFn } from '@tauri-apps/api/event';
-import { GetStateResponse, DiscoverDeviceResponse, PreferencesResponse, WizState } from '../types';
+import { GetStateResponse, DiscoverDeviceResponse, PreferencesResponse, LightState } from '../types';
 
 export interface DeviceStatePayload {
   ip: string;
   online: boolean;
-  state: WizState | null;
+  state: LightState | null;
 }
 
-export const wizService = {
+export const deviceService = {
   async discover(): Promise<DiscoverDeviceResponse[]> {
     return await invoke<DiscoverDeviceResponse[]>('discover');
   },
@@ -17,7 +17,7 @@ export const wizService = {
     return await invoke<GetStateResponse>('get_state', { ip });
   },
 
-  async control(ip: string, payload: Partial<WizState>): Promise<void> {
+  async control(ip: string, payload: Partial<LightState>): Promise<void> {
     await invoke('control', {
       ip,
       state: payload.state,

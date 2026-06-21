@@ -1,4 +1,4 @@
-# WiZ Control 💡
+# Lumus Control 💡
 
 <p>
   <img src="https://img.shields.io/badge/Tauri-v2.x-0066FF?logo=tauri&logoColor=white">
@@ -6,10 +6,10 @@
   <img src="https://img.shields.io/badge/React-18.x-61DAFB?logo=react&logoColor=white">
   <img src="https://img.shields.io/badge/Zustand-5.x-black">
   <img src="https://img.shields.io/badge/UDP_Port-38899-0066FF">
-  <img src="https://img.shields.io/github/actions/workflow/status/OWNER/wiz-control/build.yml?label=CI&logo=github">
+  <img src="https://img.shields.io/github/actions/workflow/status/dotfn/lumus-control/build.yml?label=CI&logo=github">
 </p>
 
-Aplicación de escritorio nativa para descubrir y controlar bombillas inteligentes **WiZ** en tu red local. Sin nube, sin intermediarios — comunicación directa mediante **UDP** en tiempo real.
+Aplicación de escritorio nativa para descubrir y controlar bombillas inteligentes en tu red local. Sin nube, sin intermediarios — comunicación directa mediante **UDP** en tiempo real.
 
 Disponible para **macOS**, **Windows** y **Linux**.
 
@@ -17,9 +17,9 @@ Disponible para **macOS**, **Windows** y **Linux**.
 
 ## Funcionalidades
 
-- **Descubrimiento automático** de bombillas WiZ en la red local vía broadcast UDP
+- **Descubrimiento automático** de bombillas en la red local vía broadcast UDP
 - **Control completo**: encendido/apagado, brillo, temperatura de color y RGB
-- **Escenas dinámicas** — acceso a todos los modos de escena del protocolo WiZ
+- **Escenas dinámicas** — acceso a todos los modos de escena del protocolo
 - **Sleep timer** con fade progresivo del brillo hasta apagado
 - **Tema claro/oscuro** sincronizado con la ventana nativa
 - **Alias de dispositivos** — renombrá cada bombilla con un nombre personalizado
@@ -33,7 +33,7 @@ Disponible para **macOS**, **Windows** y **Linux**.
 El proyecto está dividido en dos capas con responsabilidades estrictamente separadas.
 
 ```
-wiz-control/
+lumus-control/
 ├── src/                          # Frontend — React + Zustand
 │   ├── features/
 │   │   ├── devices/              # Descubrimiento UDP y selección de dispositivo
@@ -42,7 +42,7 @@ wiz-control/
 │   │   ├── timer/                # Sleep timer con fade
 │   │   └── layout/               # Titlebar nativa (Traffic Lights)
 │   ├── services/
-│   │   └── wizService.ts         # Abstracción IPC — única puerta de entrada a Tauri
+│   │   └── deviceService.ts      # Abstracción IPC — única puerta de entrada a Tauri
 │   └── types.ts
 │
 └── src-tauri/src/                # Backend — Rust
@@ -69,13 +69,13 @@ wiz-control/
 ### Frontend React
 
 - **Stores Zustand** por dominio: `useDeviceStore`, `useLightingStore`, `useTimerStore`, `useSettingsStore`
-- **Capa de servicios** (`wizService.ts`): los stores no conocen Tauri directamente
+- **Capa de servicios** (`deviceService.ts`): los stores no conocen Tauri directamente
 - **Actualizaciones optimistas con rollback**: la UI responde instantáneamente; si el comando UDP falla, el estado revierte al valor anterior
-- **Custom hooks** para efectos de tiempo: `useWizLightEvents`, `useSleepTimerCountdown`
+- **Custom hooks** para efectos de tiempo: `useLightEvents`, `useSleepTimerCountdown`
 
 ---
 
-## Protocolo WiZ UDP
+## Protocolo UDP
 
 Las bombillas escuchan en el puerto **38899**. La app implementa el protocolo directamente en Rust:
 
@@ -99,20 +99,20 @@ Descargá el instalador para tu sistema desde la pestaña [**Actions**](../../ac
 
 | Plataforma | Archivo |
 |---|---|
-| macOS (Apple Silicon) | `wiz-control-macos-arm64.dmg` |
-| Windows | `wiz-control-windows-x64.msi` o `.exe` |
-| Linux | `wiz-control-linux-x64.AppImage` o `.deb` |
+| macOS (Apple Silicon) | `lumus-control-macos-arm64.dmg` |
+| Windows | `lumus-control-windows-x64.msi` o `.exe` |
+| Linux | `lumus-control-linux-x64.AppImage` o `.deb` |
 
 ### macOS — Abrir app sin firma
 
 Como el proyecto no tiene Apple Developer Account, macOS bloqueará la app la primera vez. Para abrirla:
 
 **Opción 1 — Clic derecho:**
-> Clic derecho sobre `wiz-control.app` → **Abrir** → confirmar en el diálogo
+> Clic derecho sobre `lumus-control.app` → **Abrir** → confirmar en el diálogo
 
 **Opción 2 — Terminal:**
 ```bash
-sudo xattr -rd com.apple.quarantine /Applications/wiz-control.app
+sudo xattr -rd com.apple.quarantine /Applications/lumus-control.app
 ```
 
 ---

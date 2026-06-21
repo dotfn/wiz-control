@@ -58,13 +58,13 @@ jobs:
         with:
           args: --target aarch64-apple-darwin
           tagName: v__VERSION__
-          releaseName: wiz-control v__VERSION__
+          releaseName: lumus-control v__VERSION__
           releaseBody: |
-            Primer release de **wiz-control** para macOS (Apple Silicon).
+            Primer release de **lumus-control** para macOS (Apple Silicon).
 
             ### Instalación
             1. Descarga el archivo `.dmg`
-            2. Ábrelo y arrastra `wiz-control.app` a Applications
+            2. Ábrelo y arrastra `lumus-control.app` a Applications
             3. Si macOS bloquea la app por ser no firmada: haz clic derecho → Abrir
           releaseDraft: true
           prerelease: false

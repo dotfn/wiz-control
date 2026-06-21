@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { getCurrentWebviewWindow } from '@tauri-apps/api/webviewWindow';
-import { wizService } from '../../../services/wizService';
+import { deviceService } from '../../../services/deviceService';
 
 interface SettingsState {
   theme: 'light' | 'dark';
@@ -34,7 +34,7 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
 
     // Save theme to backend — IP is provided by caller to avoid circular dependency
     const ip = selectedIp !== undefined ? selectedIp : null;
-    wizService.savePreferences(ip, newTheme).catch(() => {});
+    deviceService.savePreferences(ip, newTheme).catch(() => {});
   },
 
   initTheme: () => {

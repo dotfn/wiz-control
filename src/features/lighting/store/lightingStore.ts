@@ -1,15 +1,15 @@
 import { create } from 'zustand';
-import { WizState } from '../../../types';
-import { wizService } from '../../../services/wizService';
+import { LightState } from '../../../types';
+import { deviceService } from '../../../services/deviceService';
 import { useDeviceStore } from '../../devices/store/deviceStore';
 
 interface LightingState {
-  lampState: WizState;
+  lampState: LightState;
   isConnected: boolean;
   circadianActive: boolean;
 
   // Actions
-  setLampState: (updates: Partial<WizState>) => Promise<void>;
+  setLampState: (updates: Partial<LightState>) => Promise<void>;
   refreshState: (ip: string) => Promise<void>;
   applyCircadianRhythm: () => void;
   setIsConnected: (connected: boolean) => void;
@@ -36,7 +36,7 @@ export const useLightingStore = create<LightingState>((set, get) => ({
     if (!selectedIp) return;
 
     try {
-      await wizService.control(selectedIp, updates);
+      await deviceService.control(selectedIp, updates);
       set({ isConnected: true });
       useDeviceStore.getState().setConnectionStatus('Lámpara conectada');
     } catch (e) {
@@ -49,10 +49,10 @@ export const useLightingStore = create<LightingState>((set, get) => ({
 
   refreshState: async (ip) => {
     try {
-      const data = await wizService.getState(ip);
+      const data = await deviceService.getState(ip);
       if (!data) throw new Error();
 
-      const newState: WizState = {
+      const newState: LightState = {
         state: !!data.state,
         dimming: typeof data.dimming === 'number' ? data.dimming : 60,
       };

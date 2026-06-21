@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
 import { Power, Sun, Thermometer, Palette } from 'lucide-react';
-import { WizState } from '../../../types';
+import { LightState } from '../../../types';
 import { ColorPicker } from './ColorPicker';
 
 interface LightControllerProps {
-  state: WizState;
-  onStateChange: (updatedState: Partial<WizState>) => void;
+  state: LightState;
+  onStateChange: (updatedState: Partial<LightState>) => void;
 }
 
 export const LightController: React.FC<LightControllerProps> = ({

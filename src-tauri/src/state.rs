@@ -8,7 +8,7 @@ use crate::models::AppConfig;
 /// sin necesidad de acceder al disco en cada invocación.
 pub struct ConfigState(pub Mutex<AppConfig>);
 
-/// IP del dispositivo WiZ actualmente seleccionado y monitoreado.
+/// IP del dispositivo actualmente seleccionado y monitoreado.
 /// Usada por el hilo de monitoreo para saber a qué dispositivo hacer polling.
 pub struct ActiveDeviceState(pub Mutex<Option<String>>);
 

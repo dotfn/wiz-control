@@ -1,12 +1,12 @@
 import React from 'react';
-import { WizScene } from '../../../types';
+import { LightScene } from '../../../types';
 
 interface SceneSelectorProps {
   currentSceneId?: number;
   onSelectScene: (sceneId: number) => void;
 }
 
-export const WIZ_SCENES: WizScene[] = [
+export const PRESET_SCENES: LightScene[] = [
   { id: 1, name: 'Ocean', colors: ['#0052d4', '#4364f7', '#6fb1fc'], description: 'Azul profundo y relajante' },
   { id: 2, name: 'Romance', colors: ['#f857a6', '#ff5858'], description: 'Tonos rosa y violeta cálidos' },
   { id: 3, name: 'Sunset', colors: ['#e65c00', '#f9d423'], description: 'Gradiente de atardecer dorado' },
@@ -35,7 +35,7 @@ export const SceneSelector: React.FC<SceneSelectorProps> = ({
       </label>
       
       <div className="grid grid-cols-2 gap-2 max-h-56 overflow-y-auto pr-1 custom-scrollbar">
-        {WIZ_SCENES.map((scene) => {
+        {PRESET_SCENES.map((scene) => {
           const isSelected = scene.id === currentSceneId;
           const bgGradient = scene.colors.length > 2
             ? `linear-gradient(135deg, ${scene.colors[0]}, ${scene.colors[1]}, ${scene.colors[2]})`

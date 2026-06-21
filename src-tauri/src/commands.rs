@@ -110,7 +110,7 @@ pub async fn save_preferences(
         .map_err(|e| AppError::Config(e.to_string()))?
 }
 
-/// Descubre dispositivos WiZ en la red local mediante broadcast UDP.
+/// Descubre dispositivos en la red local mediante broadcast UDP.
 /// Asíncrono: realiza I/O de red con timeout de 2 segundos.
 #[tauri::command]
 pub async fn discover() -> Result<Value, AppError> {
@@ -118,7 +118,7 @@ pub async fn discover() -> Result<Value, AppError> {
     Ok(serde_json::json!(devices))
 }
 
-/// Consulta el estado actual de un dispositivo WiZ por su IP.
+/// Consulta el estado actual de un dispositivo por su IP.
 /// Asíncrono: realiza I/O de red con timeout de 1500 ms.
 #[tauri::command]
 pub async fn get_state(ip: String) -> Result<Value, AppError> {
@@ -130,7 +130,7 @@ pub async fn get_state(ip: String) -> Result<Value, AppError> {
     Ok(resp.get("result").cloned().unwrap_or(serde_json::Value::Null))
 }
 
-/// Envía un comando de control a un dispositivo WiZ y emite el nuevo estado al frontend.
+/// Envía un comando de control a un dispositivo y emite el nuevo estado al frontend.
 /// Asíncrono: realiza I/O de red con timeout de 1500 ms.
 #[tauri::command]
 pub async fn control(

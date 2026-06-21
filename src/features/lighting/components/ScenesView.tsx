@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Search, SlidersHorizontal, Sparkles } from 'lucide-react';
-import { WIZ_SCENES } from './SceneSelector';
+import { PRESET_SCENES } from './SceneSelector';
 
 interface ScenesViewProps {
   currentSceneId?: number;
@@ -35,7 +35,7 @@ export const ScenesView: React.FC<ScenesViewProps> = ({
   const [search, setSearch] = useState('');
   const [activeCategory, setActiveCategory] = useState<SceneCategory>('all');
 
-  const filteredScenes = WIZ_SCENES.filter((scene) => {
+  const filteredScenes = PRESET_SCENES.filter((scene) => {
     const matchesSearch =
       scene.name.toLowerCase().includes(search.toLowerCase()) ||
       (scene.description || '').toLowerCase().includes(search.toLowerCase());
@@ -47,8 +47,8 @@ export const ScenesView: React.FC<ScenesViewProps> = ({
   });
 
   const getCategoryCount = (category: SceneCategory) => {
-    if (category === 'all') return WIZ_SCENES.length;
-    return WIZ_SCENES.filter((s) => CATEGORY_MAP[s.id] === category).length;
+    if (category === 'all') return PRESET_SCENES.length;
+    return PRESET_SCENES.filter((s) => CATEGORY_MAP[s.id] === category).length;
   };
 
   return (

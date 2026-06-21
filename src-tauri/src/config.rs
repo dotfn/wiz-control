@@ -99,7 +99,7 @@ mod tests {
     fn unique_test_path(name: &str) -> PathBuf {
         let mut path = std::env::temp_dir();
         let id = TEST_COUNTER.fetch_add(1, Ordering::Relaxed);
-        path.push(format!("wiz_control_test_{}_{}.json", name, id));
+        path.push(format!("lumus_control_test_{}_{}.json", name, id));
         // Limpia residuos de ejecuciones abortadas
         let _ = fs::remove_file(&path);
         let _ = fs::remove_file(path.with_extension("json.tmp"));

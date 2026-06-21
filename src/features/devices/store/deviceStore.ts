@@ -1,9 +1,9 @@
 import { create } from 'zustand';
-import { WizDevice } from '../../../types';
-import { wizService } from '../../../services/wizService';
+import { LightDevice } from '../../../types';
+import { deviceService } from '../../../services/deviceService';
 
 interface DeviceState {
-  devices: WizDevice[];
+  devices: LightDevice[];
   selectedIp: string | null;
   isScanning: boolean;
   connectionStatus: string;
@@ -28,7 +28,7 @@ export const useDeviceStore = create<DeviceState>((set, get) => ({
     let savedIp: string | null = null;
     let names: Record<string, string> = {};
     try {
-      const prefs = await wizService.getPreferences();
+      const prefs = await deviceService.getPreferences();
       names = prefs.device_names;
       savedIp = prefs.last_ip;
       set({ deviceNames: names });
@@ -67,9 +67,9 @@ export const useDeviceStore = create<DeviceState>((set, get) => ({
   scan: async () => {
     set({ isScanning: true, connectionStatus: 'Buscando lámparas...' });
     try {
-      const data = await wizService.discover();
+      const data = await deviceService.discover();
       const names = get().deviceNames;
-      const formatted: WizDevice[] = data.map((d) => ({
+      const formatted: LightDevice[] = data.map((d) => ({
         ip: d.ip,
         name: names[d.ip] || undefined,
         state: d.state ? {
@@ -92,7 +92,7 @@ export const useDeviceStore = create<DeviceState>((set, get) => ({
 
   selectDevice: (ip) => {
     set({ selectedIp: ip });
-    wizService.savePreferences(ip).catch(() => {});
+    deviceService.savePreferences(ip).catch(() => {});
     
     // Add to device list if it's manual and not there
     const currentDevices = get().devices;
@@ -109,7 +109,7 @@ export const useDeviceStore = create<DeviceState>((set, get) => ({
     set({ devices: updatedDevices, deviceNames: nextNames });
     
     try {
-      await wizService.saveDeviceName(ip, name);
+      await deviceService.saveDeviceName(ip, name);
     } catch (e) {
       console.error('Failed to save device name to config', e);
     }

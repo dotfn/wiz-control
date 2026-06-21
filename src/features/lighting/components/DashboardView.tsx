@@ -1,14 +1,14 @@
 import React from 'react';
-import { WizState } from '../../../types';
+import { LightState } from '../../../types';
 import { LightController } from './LightController';
 import { kelvinToRgb, rgbToHex } from '../../../utils/color';
-import { WIZ_SCENES } from './SceneSelector';
+import { PRESET_SCENES } from './SceneSelector';
 import { Sparkles } from 'lucide-react';
 
 interface DashboardViewProps {
-  lampState: WizState;
+  lampState: LightState;
   isConnected: boolean;
-  setLampState: (updates: Partial<WizState>) => Promise<void>;
+  setLampState: (updates: Partial<LightState>) => Promise<void>;
   circadianActive: boolean;
 }
 
@@ -23,7 +23,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
     let rgb = [255, 180, 84];
     if (lampState.state) {
       if (lampState.sceneId !== undefined) {
-        const scene = WIZ_SCENES.find((s) => s.id === lampState.sceneId);
+        const scene = PRESET_SCENES.find((s) => s.id === lampState.sceneId);
         if (scene && scene.colors.length > 0) {
           const hex = scene.colors[0];
           const cleanHex = hex.replace('#', '');
@@ -45,7 +45,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
   const rgb = getRgbColor();
   const currentRgbString = () => {
     if (lampState.state && lampState.sceneId !== undefined) {
-      const scene = WIZ_SCENES.find((s) => s.id === lampState.sceneId);
+      const scene = PRESET_SCENES.find((s) => s.id === lampState.sceneId);
       if (scene) return scene.colors[0];
     }
     return `rgb(${rgb.join(',')})`;
@@ -54,7 +54,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
   const getModeLabel = () => {
     if (!lampState.state) return 'Apagado';
     if (lampState.sceneId !== undefined) {
-      const scene = WIZ_SCENES.find((s) => s.id === lampState.sceneId);
+      const scene = PRESET_SCENES.find((s) => s.id === lampState.sceneId);
       return `Escena: ${scene?.name || 'Personalizada'}`;
     }
     if (lampState.temp !== undefined) {

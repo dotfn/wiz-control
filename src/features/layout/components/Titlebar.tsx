@@ -12,7 +12,7 @@ export const Titlebar: React.FC = () => {
 
       {/* App Centered Title */}
       <div data-tauri-drag-region className="absolute left-1/2 -translate-x-1/2 font-sans font-semibold text-theme-text tracking-wide pointer-events-none text-[11px] transition-colors duration-300">
-        WiZ Control
+        Lumus Control
       </div>
 
       {/* Theme toggle widget on the right */}

@@ -1,4 +1,4 @@
-export interface WizState {
+export interface LightState {
   state: boolean;
   dimming: number;
   r?: number;
@@ -8,13 +8,13 @@ export interface WizState {
   sceneId?: number;
 }
 
-export interface WizDevice {
+export interface LightDevice {
   ip: string;
   name?: string;
-  state?: WizState;
+  state?: LightState;
 }
 
-export interface WizScene {
+export interface LightScene {
   id: number;
   name: string;
   colors: string[];

@@ -1,10 +1,10 @@
 import { useEffect } from 'react';
 import { useDeviceStore } from '../../devices/store/deviceStore';
 import { useLightingStore } from '../store/lightingStore';
-import { wizService } from '../../../services/wizService';
-import { WizState } from '../../../types';
+import { deviceService } from '../../../services/deviceService';
+import { LightState } from '../../../types';
 
-export const useWizLightEvents = () => {
+export const useLightEvents = () => {
   const selectedIp = useDeviceStore((state) => state.selectedIp);
   const refreshState = useLightingStore((state) => state.refreshState);
 
@@ -18,13 +18,13 @@ export const useWizLightEvents = () => {
   useEffect(() => {
     let unlistenPromise: Promise<() => void> | null = null;
 
-    unlistenPromise = wizService.subscribeToDeviceState((payload) => {
+    unlistenPromise = deviceService.subscribeToDeviceState((payload) => {
       // Get the latest selected IP from the store directly to avoid stale enclosure
       const currentSelectedIp = useDeviceStore.getState().selectedIp;
       if (payload.ip !== currentSelectedIp) return;
 
       if (payload.online && payload.state) {
-        const newState: WizState = {
+        const newState: LightState = {
           state: !!payload.state.state,
           dimming: typeof payload.state.dimming === 'number' ? payload.state.dimming : 60,
         };

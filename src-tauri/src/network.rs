@@ -11,7 +11,7 @@ pub fn validate_ip(ip: &str) -> Result<IpAddr, AppError> {
         .map_err(|_| AppError::Validation(format!("Dirección IP inválida: {}", ip)))
 }
 
-/// Envía un comando UDP a un dispositivo WiZ y espera su respuesta de forma asíncrona.
+/// Envía un comando UDP a un dispositivo de luz y espera su respuesta de forma asíncrona.
 ///
 /// Valida que el paquete de respuesta provenga exactamente de la IP esperada,
 /// descartando paquetes parásitos de otros servicios en la red local.
@@ -55,7 +55,7 @@ pub async fn send_udp_cmd(ip: &str, payload: &Value) -> Result<Value, AppError> 
     Ok(resp)
 }
 
-/// Envía un broadcast UDP a la red local para descubrir dispositivos WiZ activos.
+/// Envía un broadcast UDP a la red local para descubrir dispositivos activos.
 /// Escucha respuestas durante 2 segundos antes de retornar la lista encontrada.
 ///
 /// A diferencia de `send_udp_cmd`, aquí sí aceptamos respuestas de cualquier IP
