@@ -11,7 +11,7 @@
 
 Aplicación de escritorio nativa para descubrir y controlar bombillas inteligentes en tu red local. Sin nube, sin intermediarios — comunicación directa mediante **UDP** en tiempo real.
 
-Disponible para **macOS**, **Windows** y **Linux**.
+Disponible para **macOS** (Apple Silicon).
 
 ---
 
@@ -95,13 +95,11 @@ Las bombillas escuchan en el puerto **38899**. La app implementa el protocolo di
 
 ### Descargar
 
-Descargá el instalador para tu sistema desde la pestaña [**Actions**](../../actions/workflows/build.yml) del repositorio → última ejecución exitosa → sección *Artifacts*.
+Descargá el instalador para macOS desde la página de [**Releases**](../../releases) del repositorio.
 
 | Plataforma | Archivo |
 |---|---|
 | macOS (Apple Silicon) | `lumus-control-macos-arm64.dmg` |
-| Windows | `lumus-control-windows-x64.msi` o `.exe` |
-| Linux | `lumus-control-linux-x64.AppImage` o `.deb` |
 
 ### macOS — Abrir app sin firma
 
@@ -160,16 +158,15 @@ El backend tiene **12 tests unitarios** en `config.rs` y `network.rs` cubriendo 
 
 ## CI / CD
 
-El repositorio incluye un workflow de GitHub Actions (`.github/workflows/build.yml`) que compila la app para las tres plataformas en paralelo con cada push a `main`.
+El repositorio incluye un workflow de GitHub Actions (`.github/workflows/build.yml`) con tres fases:
 
 ```
-push to main
-    ├── Build macOS (aarch64)    → .dmg
-    ├── Build Windows (x86_64)   → .msi + .exe
-    └── Build Linux (x86_64)     → .AppImage + .deb
+PR a main ──→ quality (typecheck + lint + cargo test)
+Push a main ─→ quality → build (macOS .dmg como artifact)
+Tag v* ─────→ quality → build → release (GitHub Release público)
 ```
 
-Los artefactos quedan disponibles por 30 días en la pestaña Actions.
+Cada release publicado en la pestaña [**Releases**](../../releases) incluye el instalador `.dmg` y las notas de cambio generadas automáticamente desde el historial de git.
 
 ---
 

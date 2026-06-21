@@ -3,7 +3,7 @@
  * Approximated algorithm for local display purposes.
  */
 export function kelvinToRgb(kelvin: number): [number, number, number] {
-  let temp = kelvin / 100;
+  const temp = kelvin / 100;
   let r: number, g: number, b: number;
 
   if (temp <= 66) {
