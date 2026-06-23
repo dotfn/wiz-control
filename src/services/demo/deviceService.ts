@@ -1,4 +1,4 @@
-import { GetStateResponse, DiscoverDeviceResponse, PreferencesResponse, LightState } from '../../types';
+import { DiscoverDeviceResponse, PreferencesResponse, LightState } from '../../types';
 import { DeviceStatePayload } from '../deviceService';
 
 // Simulated in-memory state of the mock lamp
@@ -42,7 +42,7 @@ export const demoDeviceService = {
     ];
   },
 
-  async getState(ip: string): Promise<GetStateResponse> {
+  async getState(ip: string): Promise<LightState> {
     if (ip !== 'virtual-lamp') {
       throw new Error('Device not found');
     }

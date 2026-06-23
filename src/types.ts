@@ -21,16 +21,6 @@ export interface LightScene {
   description?: string;
 }
 
-export interface GetStateResponse {
-  state: boolean;
-  dimming: number;
-  r?: number;
-  g?: number;
-  b?: number;
-  temp?: number;
-  sceneId?: number;
-}
-
 export interface DiscoverDeviceResponse {
   ip: string;
   state?: {

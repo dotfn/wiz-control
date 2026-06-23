@@ -1,8 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Sparkles, Sun, LayoutDashboard, Palette, Clock, Settings, Laptop } from 'lucide-react';
 import { getCurrentWebviewWindow } from '@tauri-apps/api/webviewWindow';
-import { kelvinToRgb } from '../utils/color';
-import { PRESET_SCENES } from '../features/lighting/components/SceneSelector';
+import { getLampRgbColor } from '../utils/color';
 import { isTauri } from '../utils/tauri';
 import { useDemo } from '../context/DemoContext';
 
@@ -100,27 +99,7 @@ export const ControlPage: React.FC = () => {
   // Update CSS custom properties for Dynamic Ambient Theme
   useEffect(() => {
     const isOn = lampState.state;
-    let rgb: [number, number, number] = [255, 180, 84];
-
-    if (isOn) {
-      if (lampState.sceneId !== undefined) {
-        const scene = PRESET_SCENES.find((s) => s.id === lampState.sceneId);
-        if (scene && scene.colors.length > 0) {
-          // Parse hex of first color of the scene
-          const hex = scene.colors[0];
-          const cleanHex = hex.replace('#', '');
-          rgb = [
-            parseInt(cleanHex.substring(0, 2), 16),
-            parseInt(cleanHex.substring(2, 4), 16),
-            parseInt(cleanHex.substring(4, 6), 16),
-          ];
-        }
-      } else if (lampState.temp !== undefined) {
-        rgb = kelvinToRgb(lampState.temp);
-      } else if (lampState.r !== undefined) {
-        rgb = [lampState.r, lampState.g ?? 0, lampState.b ?? 0];
-      }
-    }
+    const rgb = getLampRgbColor(lampState);
 
     const glowStrength = isOn ? lampState.dimming / 100 : 0;
     document.documentElement.style.setProperty('--glow-color', rgb.join(','));

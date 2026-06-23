@@ -1,7 +1,7 @@
 import React from 'react';
 import { LightState } from '../../../types';
 import { LightController } from './LightController';
-import { kelvinToRgb, rgbToHex } from '../../../utils/color';
+import { rgbToHex, getLampRgbColor } from '../../../utils/color';
 import { PRESET_SCENES } from './SceneSelector';
 import { Sparkles } from 'lucide-react';
 
@@ -18,31 +18,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
   setLampState,
   circadianActive,
 }) => {
-  // Determine current active color for dynamic border or glow
-  const getRgbColor = () => {
-    let rgb = [255, 180, 84];
-    if (lampState.state) {
-      if (lampState.sceneId !== undefined) {
-        const scene = PRESET_SCENES.find((s) => s.id === lampState.sceneId);
-        if (scene && scene.colors.length > 0) {
-          const hex = scene.colors[0];
-          const cleanHex = hex.replace('#', '');
-          rgb = [
-            parseInt(cleanHex.substring(0, 2), 16),
-            parseInt(cleanHex.substring(2, 4), 16),
-            parseInt(cleanHex.substring(4, 6), 16),
-          ];
-        }
-      } else if (lampState.temp !== undefined) {
-        rgb = kelvinToRgb(lampState.temp);
-      } else if (lampState.r !== undefined) {
-        rgb = [lampState.r, lampState.g ?? 0, lampState.b ?? 0];
-      }
-    }
-    return rgb;
-  };
-
-  const rgb = getRgbColor();
+  const rgb = getLampRgbColor(lampState);
   const currentRgbString = () => {
     if (lampState.state && lampState.sceneId !== undefined) {
       const scene = PRESET_SCENES.find((s) => s.id === lampState.sceneId);

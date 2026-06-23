@@ -1,6 +1,6 @@
 import { invoke } from '@tauri-apps/api/core';
 import { listen, UnlistenFn } from '@tauri-apps/api/event';
-import { GetStateResponse, DiscoverDeviceResponse, PreferencesResponse, LightState } from '../../types';
+import { LightState, DiscoverDeviceResponse, PreferencesResponse } from '../../types';
 import { DeviceStatePayload } from '../deviceService';
 
 export const tauriDeviceService = {
@@ -8,8 +8,8 @@ export const tauriDeviceService = {
     return await invoke<DiscoverDeviceResponse[]>('discover');
   },
 
-  async getState(ip: string): Promise<GetStateResponse> {
-    return await invoke<GetStateResponse>('get_state', { ip });
+  async getState(ip: string): Promise<LightState> {
+    return await invoke<LightState>('get_state', { ip });
   },
 
   async control(ip: string, payload: Partial<LightState>): Promise<void> {

@@ -1,7 +1,6 @@
-/**
- * Estimates RGB values based on color temperature in Kelvin.
- * Approximated algorithm for local display purposes.
- */
+import { LightState } from '../types';
+import { PRESET_SCENES } from '../features/lighting/components/SceneSelector';
+
 export function kelvinToRgb(kelvin: number): [number, number, number] {
   const temp = kelvin / 100;
   let r: number, g: number, b: number;
@@ -26,9 +25,6 @@ export function kelvinToRgb(kelvin: number): [number, number, number] {
   return [clamp(r), clamp(g), clamp(b)];
 }
 
-/**
- * Converts a hex string color to an [r, g, b] array
- */
 export function hexToRgb(hex: string): [number, number, number] {
   if (!/^#[0-9a-fA-F]{6}$/.test(hex)) {
     return [255, 255, 255];
@@ -40,9 +36,6 @@ export function hexToRgb(hex: string): [number, number, number] {
   return [r, g, b];
 }
 
-/**
- * Converts [r, g, b] to a hex string
- */
 export function rgbToHex(r: number, g: number, b: number): string {
   const toHex = (c: number) => {
     const hex = c.toString(16);
@@ -51,9 +44,32 @@ export function rgbToHex(r: number, g: number, b: number): string {
   return `#${toHex(r)}${toHex(g)}${toHex(b)}`;
 }
 
-/**
- * Standard preset colors for the quick color swatch selector
- */
+export function getLampRgbColor(lampState: LightState): [number, number, number] {
+  const isOn = lampState.state;
+  let rgb: [number, number, number] = [255, 180, 84];
+
+  if (isOn) {
+    if (lampState.sceneId !== undefined) {
+      const scene = PRESET_SCENES.find((s) => s.id === lampState.sceneId);
+      if (scene && scene.colors.length > 0) {
+        const hex = scene.colors[0];
+        const cleanHex = hex.replace('#', '');
+        rgb = [
+          parseInt(cleanHex.substring(0, 2), 16),
+          parseInt(cleanHex.substring(2, 4), 16),
+          parseInt(cleanHex.substring(4, 6), 16),
+        ];
+      }
+    } else if (lampState.temp !== undefined) {
+      rgb = kelvinToRgb(lampState.temp);
+    } else if (lampState.r !== undefined) {
+      rgb = [lampState.r, lampState.g ?? 0, lampState.b ?? 0];
+    }
+  }
+
+  return rgb;
+}
+
 export const PRESET_COLORS = [
   { name: "Cálido",  r: 255, g: 180, b: 107 },
   { name: "Blanco",  r: 255, g: 244, b: 229 },
