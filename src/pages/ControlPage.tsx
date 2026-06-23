@@ -224,47 +224,57 @@ export const ControlPage: React.FC = () => {
             </nav>
 
             {/* Tab Content Panel */}
-            <div className="flex-1 overflow-y-auto custom-scrollbar pr-1" role="tabpanel" id="tabpanel-settings" aria-labelledby="tab-settings">
+            <div className="flex-1 overflow-y-auto custom-scrollbar pr-1">
               {activeTab === 'settings' ? (
-                <SettingsView />
+                <div role="tabpanel" id="tabpanel-settings" aria-labelledby="tab-settings">
+                  <SettingsView />
+                </div>
               ) : selectedIp ? (
                 <>
                   {activeTab === 'dashboard' && (
-                    <DashboardView
-                      lampState={lampState}
-                      isConnected={isConnected}
-                      setLampState={setLampState}
-                      circadianActive={circadianActive}
-                    />
+                    <div role="tabpanel" id="tabpanel-dashboard" aria-labelledby="tab-dashboard">
+                      <DashboardView
+                        lampState={lampState}
+                        isConnected={isConnected}
+                        setLampState={setLampState}
+                        circadianActive={circadianActive}
+                      />
+                    </div>
                   )}
                   {activeTab === 'scenes' && (
-                    <ScenesView
-                      currentSceneId={lampState.sceneId}
-                      onSelectScene={(id) => setLampState({ sceneId: id, state: true, temp: undefined })}
-                    />
+                    <div role="tabpanel" id="tabpanel-scenes" aria-labelledby="tab-scenes">
+                      <ScenesView
+                        currentSceneId={lampState.sceneId}
+                        onSelectScene={(id) => setLampState({ sceneId: id, state: true, temp: undefined })}
+                      />
+                    </div>
                   )}
                   {activeTab === 'timer' && (
-                    <TimerView
-                      isActive={timerActive}
-                      onStartTimer={handleStartTimer}
-                      onCancelTimer={cancelTimer}
-                      remainingSeconds={timerSeconds}
-                      totalSeconds={totalTimerSeconds}
-                      fadeOutEnabled={timerFadeOut}
-                    />
+                    <div role="tabpanel" id="tabpanel-timer" aria-labelledby="tab-timer">
+                      <TimerView
+                        isActive={timerActive}
+                        onStartTimer={handleStartTimer}
+                        onCancelTimer={cancelTimer}
+                        remainingSeconds={timerSeconds}
+                        totalSeconds={totalTimerSeconds}
+                        fadeOutEnabled={timerFadeOut}
+                      />
+                    </div>
                   )}
                 </>
               ) : (
-                <div className="flex-1 flex flex-col items-center justify-center py-20 px-4 border border-dashed border-theme-border rounded-2xl bg-theme-input animate-fade-in">
-                  <p className="text-sm text-theme-textSecondary text-center max-w-sm transition-colors duration-300">
-                    Selecciona una lámpara de la lista o introduce una dirección en el panel izquierdo para comenzar a controlarla.
-                  </p>
-                  <button
-                    onClick={() => setActiveTab('settings')}
-                    className="mt-4 px-4 py-2 bg-theme-input hover:bg-theme-border border border-theme-border rounded-xl text-xs font-semibold text-theme-text transition-all active:scale-95"
-                  >
-                    Ir a Configuración de Red
-                  </button>
+                <div role="tabpanel" id={`tabpanel-${activeTab}`} aria-labelledby={`tab-${activeTab}`}>
+                  <div className="flex-1 flex flex-col items-center justify-center py-20 px-4 border border-dashed border-theme-border rounded-2xl bg-theme-input animate-fade-in">
+                    <p className="text-sm text-theme-textSecondary text-center max-w-sm transition-colors duration-300">
+                      Selecciona una lámpara de la lista o introduce una dirección en el panel izquierdo para comenzar a controlarla.
+                    </p>
+                    <button
+                      onClick={() => setActiveTab('settings')}
+                      className="mt-4 px-4 py-2 bg-theme-input hover:bg-theme-border border border-theme-border rounded-xl text-xs font-semibold text-theme-text transition-all active:scale-95"
+                    >
+                      Ir a Configuración de Red
+                    </button>
+                  </div>
                 </div>
               )}
             </div>
