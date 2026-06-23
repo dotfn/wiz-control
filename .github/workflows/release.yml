@@ -177,5 +177,4 @@ jobs:
           files: artifacts/**
           draft: false
           prerelease: false
-        env:
-          GITHUB_TOKEN: ${{ secrets.TAP_PAT }}
+          token: ${{ secrets.TAP_PAT }}
