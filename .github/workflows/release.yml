@@ -69,7 +69,7 @@ jobs:
 
       - name: Set up signing key file
         run: |
-          printf "%s" "$RAW_KEY" > "${{ github.workspace }}/tauri.key"
+          node -e "fs.writeFileSync('${{ github.workspace }}/tauri.key', Buffer.from(process.env.RAW_KEY, 'base64'))"
         shell: bash
         env:
           RAW_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
