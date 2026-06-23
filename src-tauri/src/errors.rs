@@ -25,8 +25,11 @@ impl From<AppError> for String {
     }
 }
 
-impl From<AppError> for tauri::ipc::InvokeError {
-    fn from(e: AppError) -> Self {
-        tauri::ipc::InvokeError::from(e.to_string())
+impl serde::Serialize for AppError {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::ser::Serializer,
+    {
+        serializer.serialize_str(self.to_string().as_ref())
     }
 }
