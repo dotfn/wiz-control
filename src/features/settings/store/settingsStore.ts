@@ -7,6 +7,7 @@ interface SettingsState {
   theme: 'light' | 'dark';
   toggleTheme: (selectedIp?: string | null) => void;
   initTheme: () => void;
+  syncThemeFromBackend: (backendTheme: string | null) => void;
 }
 
 export const useSettingsStore = create<SettingsState>((set, get) => ({
@@ -71,6 +72,21 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
       } catch (e) {
         console.warn('Tauri window API is not available:', e);
       }
+    }
+  },
+
+  syncThemeFromBackend: (backendTheme: string | null) => {
+    // Solo aplica el tema del backend si localStorage está vacío
+    // (primera ejecución o storage limpiado).
+    if (!localStorage.getItem('theme') && backendTheme) {
+      const theme = backendTheme as 'light' | 'dark';
+      localStorage.setItem('theme', theme);
+      if (theme === 'dark') {
+        document.documentElement.classList.add('dark');
+      } else {
+        document.documentElement.classList.remove('dark');
+      }
+      set({ theme });
     }
   },
 }));

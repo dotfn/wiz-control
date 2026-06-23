@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { LightDevice } from '../../../types';
 import { deviceService } from '../../../services/deviceService';
+import { useSettingsStore } from '../../settings/store/settingsStore';
 
 interface DeviceState {
   devices: LightDevice[];
@@ -10,8 +11,9 @@ interface DeviceState {
   deviceNames: Record<string, string>;
 
   // Actions
-  loadPreferencesAndScan: () => Promise<void>;
+  loadPreferences: () => Promise<string | null>;
   scan: () => Promise<void>;
+  loadPreferencesAndScan: () => Promise<void>;
   selectDevice: (ip: string) => void;
   updateDeviceName: (ip: string, name: string) => Promise<void>;
   setConnectionStatus: (status: string) => void;
@@ -24,30 +26,23 @@ export const useDeviceStore = create<DeviceState>((set, get) => ({
   connectionStatus: 'Buscando dispositivos...',
   deviceNames: {},
 
-  loadPreferencesAndScan: async () => {
+  loadPreferences: async () => {
     let savedIp: string | null = null;
-    let names: Record<string, string> = {};
     try {
       const prefs = await deviceService.getPreferences();
-      names = prefs.device_names;
       savedIp = prefs.last_ip;
-      set({ deviceNames: names });
+      set({ deviceNames: prefs.device_names });
 
-      // Sync theme from backend if localStorage is empty
-      // (first launch or storage cleared).
-      if (!localStorage.getItem('theme') && prefs.theme) {
-        const theme = prefs.theme as 'light' | 'dark';
-        localStorage.setItem('theme', theme);
-        if (theme === 'dark') {
-          document.documentElement.classList.add('dark');
-        } else {
-          document.documentElement.classList.remove('dark');
-        }
-      }
+      // Sincroniza el tema del backend solo si localStorage está vacío
+      useSettingsStore.getState().syncThemeFromBackend(prefs.theme ?? null);
     } catch (e) {
       console.error('Failed to load preferences', e);
     }
+    return savedIp;
+  },
 
+  loadPreferencesAndScan: async () => {
+    const savedIp = await get().loadPreferences();
     await get().scan();
 
     const currentDevices = get().devices;
@@ -58,7 +53,7 @@ export const useDeviceStore = create<DeviceState>((set, get) => ({
       }
     } else if (savedIp) {
       set({
-        devices: [{ ip: savedIp, name: names[savedIp] || 'Lámpara guardada' }],
+        devices: [{ ip: savedIp, name: get().deviceNames[savedIp] || 'Lámpara guardada' }],
       });
       get().selectDevice(savedIp);
     }

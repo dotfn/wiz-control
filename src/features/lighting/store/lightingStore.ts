@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { LightState } from '../../../types';
 import { deviceService } from '../../../services/deviceService';
-import { useDeviceStore } from '../../devices/store/deviceStore';
+import { getActiveDeviceIp, setDeviceConnectionStatus } from '../../devices/services/storeAccessor';
 
 interface LightingState {
   lampState: LightState;
@@ -32,17 +32,17 @@ export const useLightingStore = create<LightingState>((set, get) => ({
     // Optimistic UI update
     set((prev) => ({ lampState: { ...prev.lampState, ...updates } }));
 
-    const selectedIp = useDeviceStore.getState().selectedIp;
+    const selectedIp = getActiveDeviceIp();
     if (!selectedIp) return;
 
     try {
       await deviceService.control(selectedIp, updates);
       set({ isConnected: true });
-      useDeviceStore.getState().setConnectionStatus('Lámpara conectada');
+      setDeviceConnectionStatus('Lámpara conectada');
     } catch (e) {
       // Rollback on failure
       set({ lampState: previousState, isConnected: false });
-      useDeviceStore.getState().setConnectionStatus('Lámpara no responde');
+      setDeviceConnectionStatus('Lámpara no responde');
       console.error('Error al enviar comando de control:', e);
     }
   },
@@ -70,10 +70,10 @@ export const useLightingStore = create<LightingState>((set, get) => ({
       }
 
       set({ lampState: newState, isConnected: true });
-      useDeviceStore.getState().setConnectionStatus('Lámpara conectada');
+      setDeviceConnectionStatus('Lámpara conectada');
     } catch (e) {
       set({ isConnected: false });
-      useDeviceStore.getState().setConnectionStatus('Lámpara no responde');
+      setDeviceConnectionStatus('Lámpara no responde');
     }
   },
 
@@ -101,9 +101,6 @@ export const useLightingStore = create<LightingState>((set, get) => ({
 
     set({ circadianActive: true });
     get().setLampState({ state: true, temp, dimming, sceneId: undefined });
-
-    // Toast/Alert auto-clear
-    setTimeout(() => set({ circadianActive: false }), 3000);
   },
 
   setIsConnected: (connected) => set({ isConnected: connected }),

@@ -15,6 +15,7 @@ import { useSettingsStore } from '../features/settings/store/settingsStore';
 // Hooks
 import { useLightEvents } from '../features/lighting/hooks/useLightEvents';
 import { useSleepTimerCountdown } from '../features/timer/hooks/useSleepTimerCountdown';
+import { useCircadianAutoClear } from '../features/lighting/hooks/useCircadianAutoClear';
 
 // Components
 import { Titlebar } from '../features/layout/components/Titlebar';
@@ -31,39 +32,34 @@ export const ControlPage: React.FC = () => {
   const { isDemo } = useDemo();
 
   // Device store selector
-  const {
-    devices,
-    selectedIp,
-    isScanning,
-    connectionStatus,
-    loadPreferencesAndScan,
-    selectDevice,
-    updateDeviceName,
-    scan,
-  } = useDeviceStore();
+  const devices = useDeviceStore((s) => s.devices);
+  const selectedIp = useDeviceStore((s) => s.selectedIp);
+  const isScanning = useDeviceStore((s) => s.isScanning);
+  const connectionStatus = useDeviceStore((s) => s.connectionStatus);
+  const loadPreferencesAndScan = useDeviceStore((s) => s.loadPreferencesAndScan);
+  const selectDevice = useDeviceStore((s) => s.selectDevice);
+  const updateDeviceName = useDeviceStore((s) => s.updateDeviceName);
+  const scan = useDeviceStore((s) => s.scan);
 
   // Lighting store selector
-  const {
-    lampState,
-    isConnected,
-    circadianActive,
-    setLampState,
-    applyCircadianRhythm,
-  } = useLightingStore();
+  const lampState = useLightingStore((s) => s.lampState);
+  const isConnected = useLightingStore((s) => s.isConnected);
+  const circadianActive = useLightingStore((s) => s.circadianActive);
+  const setLampState = useLightingStore((s) => s.setLampState);
+  const applyCircadianRhythm = useLightingStore((s) => s.applyCircadianRhythm);
 
   // Timer store selector
-  const {
-    timerActive,
-    timerSeconds,
-    totalTimerSeconds,
-    timerFadeOut,
-    startTimer,
-    cancelTimer,
-  } = useTimerStore();
+  const timerActive = useTimerStore((s) => s.timerActive);
+  const timerSeconds = useTimerStore((s) => s.timerSeconds);
+  const totalTimerSeconds = useTimerStore((s) => s.totalTimerSeconds);
+  const timerFadeOut = useTimerStore((s) => s.timerFadeOut);
+  const startTimer = useTimerStore((s) => s.startTimer);
+  const cancelTimer = useTimerStore((s) => s.cancelTimer);
 
   // Native events & timer side-effects (React hook lifecycle wrapper)
   useLightEvents();
   useSleepTimerCountdown();
+  useCircadianAutoClear();
 
   const initTheme = useSettingsStore((state) => state.initTheme);
 
