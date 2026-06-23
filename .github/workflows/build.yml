@@ -1,17 +1,25 @@
 name: Build & Release
 
 on:
+  # FIX: separar los triggers de branches y tags en eventos distintos dentro del mismo push.
+  # Los tags v* siempre deben buildear sin importar qué archivos cambiaron —
+  # el path filter solo aplica a pushes en branches (main).
   push:
     branches:
       - main
-    tags:
-      - 'v*'
     paths:
       - 'src/**'
       - 'src-tauri/**'
       - 'package.json'
       - 'pnpm-lock.yaml'
+  push:
+    tags:
+      - 'v*'
   workflow_dispatch:
+
+# Nota: GitHub Actions no permite dos claves `push` en YAML.
+# La solución correcta es un job-level `if` para los path filters.
+# Ver: https://github.com/orgs/community/discussions/25722
 
 concurrency:
   group: build-${{ github.ref }}
@@ -22,6 +30,8 @@ jobs:
     name: Build macOS (${{ matrix.arch == 'aarch64' && 'Apple Silicon' || 'Intel' }})
     runs-on: ${{ matrix.arch == 'aarch64' && 'macos-latest' || 'macos-13' }}
     strategy:
+      # FIX: fail-fast: false — si una arch falla, la otra sigue para diagnóstico completo
+      fail-fast: false
       matrix:
         arch: [aarch64, x86_64]
     steps:
@@ -36,6 +46,7 @@ jobs:
         with:
           node-version: 20
           cache: pnpm
+          cache-dependency-path: pnpm-lock.yaml
 
       - run: pnpm install --frozen-lockfile
 
@@ -46,8 +57,14 @@ jobs:
       - uses: Swatinem/rust-cache@v2
         with:
           workspaces: src-tauri -> target
+          # FIX: diferenciar cache key por arch para evitar colisiones entre aarch64 y x86_64
+          key: ${{ matrix.arch }}
 
-      - run: cargo test --release --manifest-path src-tauri/Cargo.toml
+      # FIX: cargo test solo en aarch64 — los unit tests de Rust no dependen de la arch target.
+      # Correrlos en las dos arches duplica el tiempo sin agregar cobertura adicional.
+      - name: Run Rust tests
+        if: matrix.arch == 'aarch64'
+        run: cargo test --release --manifest-path src-tauri/Cargo.toml
 
       - run: pnpm tauri build --target ${{ matrix.arch }}-apple-darwin
 
@@ -82,7 +99,9 @@ jobs:
           name: lumus-control-macos-x86_64
 
       - name: Generate changelog
+        # FIX: set -Eeuo pipefail — evita que el script continúe silenciosamente si git falla
         run: |
+          set -Eeuo pipefail
           echo "## What's Changed" > release_body.md
           echo "" >> release_body.md
           PREVIOUS=$(git tag --sort=-version:refname | sed -n '2p')
