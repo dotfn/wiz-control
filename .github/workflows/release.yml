@@ -25,7 +25,9 @@ jobs:
             os: macos-latest
             target: aarch64-apple-darwin
             artifact: lumus-control-macos-aarch64
-            bundle-path: src-tauri/target/aarch64-apple-darwin/release/bundle/dmg/*.dmg*
+            bundle-path: |
+              src-tauri/target/aarch64-apple-darwin/release/bundle/dmg/*.dmg
+              src-tauri/target/aarch64-apple-darwin/release/bundle/macos/*.app.tar.gz*
 
           # Windows x86_64
           - name: Windows (x86_64)
@@ -114,8 +116,8 @@ jobs:
           TAG="${{ github.event.release.tag_name || github.ref_name }}"
           VERSION="${TAG#v}"
 
-          MAC_FILE=$(find artifacts -name "*_aarch64.dmg" -exec basename {} \; | head -n 1)
-          MAC_SIG_FILE=$(find artifacts -name "*_aarch64.dmg.sig" -exec basename {} \; | head -n 1)
+          MAC_FILE=$(find artifacts -name "*.app.tar.gz" -exec basename {} \; | head -n 1)
+          MAC_SIG_FILE=$(find artifacts -name "*.app.tar.gz.sig" -exec basename {} \; | head -n 1)
 
           WIN_FILE=$(find artifacts -name "*-setup.nsis.zip" -exec basename {} \; | head -n 1)
           WIN_SIG_FILE=$(find artifacts -name "*-setup.nsis.zip.sig" -exec basename {} \; | head -n 1)
