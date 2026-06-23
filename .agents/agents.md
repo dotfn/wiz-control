@@ -42,7 +42,11 @@ chore/que-se-actualizo
 
 ## Workflows de CI/CD
 
+> Arquitectura de 4 workflows separados por responsabilidad para minimizar cómputo innecesario.
+
 ### `ci.yml` — Quality Checks
+
+**Runner:** `ubuntu-latest` (1× costo, suficiente para Node puro)
 
 **Cuándo corre:**
 - Push a `develop`, `feature/**`, `fix/**`, `hotfix/**`, `chore/**`
@@ -54,35 +58,53 @@ chore/que-se-actualizo
 2. `pnpm typecheck` — verificación de tipos TypeScript
 3. `pnpm lint` — ESLint con zero warnings
 
-**NO corre si solo cambiaron:** `README.md`, `docs/**`, `.github/**`, `*.sh`, archivos de configuración de Homebrew.
+**NO corre si solo cambiaron:** `README.md`, `docs/**`, `.github/**`, `*.sh`, archivos de Homebrew.
 
 ---
 
-### `build.yml` — Build & Release
+### `build.yml` — Build en main
+
+**Runner:** `macos-latest` / `macos-13` (requerido por Tauri)
 
 **Cuándo corre:**
-- Push a `main` que afecte `src/`, `src-tauri/`, `package.json`, `pnpm-lock.yaml`
-- Tags `v*` (release) — **sin path filter**, siempre corre
+- Push a `main` con path filter: `src/**`, `src-tauri/**`, `package.json`, `pnpm-lock.yaml`
 - `workflow_dispatch` — trigger manual
 
 **Qué hace:**
-1. Build nativo para `aarch64-apple-darwin` (Apple Silicon) y `x86_64-apple-darwin` (Intel) en paralelo
-2. `cargo test --release` en Rust
+1. Build paralelo para `aarch64-apple-darwin` (Apple Silicon) y `x86_64-apple-darwin` (Intel)
+2. `cargo test --release` — **solo en aarch64** (unit tests son independientes de arch)
 3. `pnpm tauri build` — genera los `.dmg`
-4. Upload de artifacts (DMG + `install.sh`)
-5. En tags `v*`: crea GitHub Release con changelog auto-generado
+4. Upload de artifacts
 
 **No duplica** `typecheck` ni `lint` — esos son responsabilidad del `ci.yml`.
 
 ---
 
+### `release.yml` — Build & Release en tags
+
+**Runner:** `macos-latest` / `macos-13` + `ubuntu-latest` (release job)
+
+**Cuándo corre:**
+- Tags `v*` — **siempre, sin path filter** (separado de `build.yml` para evitar que el path filter bloquee releases)
+- `cancel-in-progress: false` — un release nunca se cancela a mitad
+
+**Qué hace:**
+1. Build paralelo para ambas arches
+2. `cargo test --release` en aarch64
+3. `pnpm tauri build` — genera los `.dmg`
+4. Crea GitHub Release con changelog auto-generado
+
+---
+
 ### `update-tap.yml` — Homebrew Tap
+
+**Runner:** `ubuntu-latest` (1× costo, solo hace git/curl/sed)
 
 **Cuándo corre:** Solo cuando se publica un release (`release: published`).
 
 **Qué hace:**
-1. Descarga los DMG del release
-2. Calcula SHA256 para arm64 e x86_64
+1. Descarga los DMG del release (`curl --fail` — falla si la URL no existe)
+2. Valida que los SHA256 no estén vacíos antes de escribir el cask
 3. Actualiza `Casks/lumus-control.rb` en el repo `dotfn/homebrew-lumus`
 4. Commit y push automático
 
@@ -153,9 +175,10 @@ lumus-control/
 │   └── agents.md        # Este archivo
 ├── .github/
 │   └── workflows/
-│       ├── ci.yml       # Quality checks (typecheck + lint)
-│       ├── build.yml    # Build & Release (macOS DMG)
-│       └── update-tap.yml  # Homebrew tap auto-update
+│       ├── ci.yml          # Quality checks (typecheck + lint) — ubuntu-latest
+│       ├── build.yml       # Build en main con path filters — macos runners
+│       ├── release.yml     # Build + Release en tags v* — sin path filter
+│       └── update-tap.yml  # Homebrew tap auto-update — ubuntu-latest
 ├── src/                 # Frontend React/TypeScript
 │   ├── components/
 │   ├── layouts/
