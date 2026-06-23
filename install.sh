@@ -20,7 +20,7 @@ done
 ARCH=$(uname -m)
 case "$ARCH" in
   arm64)  ARCH_SUFFIX="aarch64" ;;
-  x86_64) ARCH_SUFFIX="x86_64" ;;
+  x86_64) echo "Intel Macs (x86_64) are no longer supported. Please build from source or use Apple Silicon."; exit 1 ;;
   *) echo "Unsupported architecture: $ARCH"; exit 1 ;;
 esac
 
