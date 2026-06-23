@@ -27,13 +27,6 @@ jobs:
             artifact: lumus-control-macos-aarch64
             bundle-path: src-tauri/target/aarch64-apple-darwin/release/bundle/dmg/*.dmg
 
-          # macOS Intel
-          - name: macOS (Intel)
-            os: macos-13
-            target: x86_64-apple-darwin
-            artifact: lumus-control-macos-x86_64
-            bundle-path: src-tauri/target/x86_64-apple-darwin/release/bundle/dmg/*.dmg
-
           # Windows x86_64
           - name: Windows (x86_64)
             os: windows-latest

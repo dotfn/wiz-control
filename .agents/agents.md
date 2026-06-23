@@ -234,7 +234,6 @@ El CLI de Tauri aplica el merge automáticamente según la plataforma de build. 
 | Plataforma | Runner CI | Rust Target | Instalador |
 |------------|-----------|-------------|------------|
 | macOS Apple Silicon | `macos-latest` | `aarch64-apple-darwin` | `.dmg` |
-| macOS Intel | `macos-13` | `x86_64-apple-darwin` | `.dmg` |
 | Windows | `windows-latest` | `x86_64-pc-windows-msvc` | `.exe` (NSIS) |
 
 ### Firma de Código
