@@ -1,9 +1,8 @@
-name: Build & Release
+name: Build (main)
 
 on:
-  # FIX: separar los triggers de branches y tags en eventos distintos dentro del mismo push.
-  # Los tags v* siempre deben buildear sin importar qué archivos cambiaron —
-  # el path filter solo aplica a pushes en branches (main).
+  # Solo buildea en main cuando cambia código fuente relevante.
+  # Útil para detectar problemas de build antes de taggear un release.
   push:
     branches:
       - main
@@ -12,17 +11,10 @@ on:
       - 'src-tauri/**'
       - 'package.json'
       - 'pnpm-lock.yaml'
-  push:
-    tags:
-      - 'v*'
   workflow_dispatch:
 
-# Nota: GitHub Actions no permite dos claves `push` en YAML.
-# La solución correcta es un job-level `if` para los path filters.
-# Ver: https://github.com/orgs/community/discussions/25722
-
 concurrency:
-  group: build-${{ github.ref }}
+  group: build-main-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
@@ -30,7 +22,6 @@ jobs:
     name: Build macOS (${{ matrix.arch == 'aarch64' && 'Apple Silicon' || 'Intel' }})
     runs-on: ${{ matrix.arch == 'aarch64' && 'macos-latest' || 'macos-13' }}
     strategy:
-      # FIX: fail-fast: false — si una arch falla, la otra sigue para diagnóstico completo
       fail-fast: false
       matrix:
         arch: [aarch64, x86_64]
@@ -57,11 +48,9 @@ jobs:
       - uses: Swatinem/rust-cache@v2
         with:
           workspaces: src-tauri -> target
-          # FIX: diferenciar cache key por arch para evitar colisiones entre aarch64 y x86_64
           key: ${{ matrix.arch }}
 
-      # FIX: cargo test solo en aarch64 — los unit tests de Rust no dependen de la arch target.
-      # Correrlos en las dos arches duplica el tiempo sin agregar cobertura adicional.
+      # cargo test solo en aarch64 — unit tests son independientes de arch target
       - name: Run Rust tests
         if: matrix.arch == 'aarch64'
         run: cargo test --release --manifest-path src-tauri/Cargo.toml
@@ -75,50 +64,3 @@ jobs:
           path: |
             src-tauri/target/${{ matrix.arch }}-apple-darwin/release/bundle/dmg/*.dmg
             install.sh
-
-  release:
-    name: Create Release
-    needs: build
-    if: startsWith(github.ref, 'refs/tags/v')
-    runs-on: ubuntu-latest
-    permissions:
-      contents: write
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-
-      - name: Download ARM64 DMG
-        uses: actions/download-artifact@v4
-        with:
-          name: lumus-control-macos-aarch64
-
-      - name: Download x86_64 DMG
-        uses: actions/download-artifact@v4
-        with:
-          name: lumus-control-macos-x86_64
-
-      - name: Generate changelog
-        # FIX: set -Eeuo pipefail — evita que el script continúe silenciosamente si git falla
-        run: |
-          set -Eeuo pipefail
-          echo "## What's Changed" > release_body.md
-          echo "" >> release_body.md
-          PREVIOUS=$(git tag --sort=-version:refname | sed -n '2p')
-          if [ -n "$PREVIOUS" ]; then
-            git log "$PREVIOUS..HEAD" --pretty=format:"- %s" >> release_body.md
-          else
-            git log --pretty=format:"- %s" >> release_body.md
-          fi
-
-      - name: Create Release
-        uses: softprops/action-gh-release@v2
-        with:
-          body_path: release_body.md
-          files: |
-            ./*.dmg
-            install.sh
-          draft: false
-          prerelease: false
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
