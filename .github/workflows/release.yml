@@ -67,16 +67,22 @@ jobs:
         if: matrix.target == 'aarch64-apple-darwin'
         run: cargo test --release --manifest-path src-tauri/Cargo.toml
 
-      - name: Set up signing key
+      - name: Set up signing key file
         run: |
-          CLEAN_KEY=$(echo "$RAW_KEY" | tr -d '\n\r ')
-          echo "TAURI_SIGNING_PRIVATE_KEY=$CLEAN_KEY" >> "$GITHUB_ENV"
+          printf "%s" "$RAW_KEY" > "${{ github.workspace }}/tauri.key"
         shell: bash
         env:
           RAW_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
 
       - name: Build Tauri app
         run: pnpm tauri build --target ${{ matrix.target }}
+        env:
+          TAURI_SIGNING_PRIVATE_KEY: ${{ github.workspace }}/tauri.key
+
+      - name: Clean up signing key file
+        run: |
+          rm -f "${{ github.workspace }}/tauri.key"
+        shell: bash
 
       - name: Upload installer
         uses: actions/upload-artifact@v4
