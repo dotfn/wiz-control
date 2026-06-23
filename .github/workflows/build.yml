@@ -55,7 +55,22 @@ jobs:
         if: matrix.arch == 'aarch64'
         run: cargo test --release --manifest-path src-tauri/Cargo.toml
 
-      - run: pnpm tauri build --target ${{ matrix.arch }}-apple-darwin
+      - name: Set up signing key file
+        run: |
+          node -e "fs.writeFileSync('${{ github.workspace }}/tauri.key', Buffer.from(process.env.RAW_KEY, 'base64'))"
+        shell: bash
+        env:
+          RAW_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+
+      - name: Build Tauri app
+        run: pnpm tauri build --target ${{ matrix.arch }}-apple-darwin
+        env:
+          TAURI_SIGNING_PRIVATE_KEY: ${{ github.workspace }}/tauri.key
+
+      - name: Clean up signing key file
+        run: |
+          rm -f "${{ github.workspace }}/tauri.key"
+        shell: bash
 
       - name: Upload DMG
         uses: actions/upload-artifact@v4
