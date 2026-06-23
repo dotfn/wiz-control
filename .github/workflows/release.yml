@@ -69,10 +69,11 @@ jobs:
 
       - name: Set up signing key file
         run: |
-          node -e "fs.writeFileSync('${{ github.workspace }}/tauri.key', Buffer.from(process.env.RAW_KEY, 'base64'))"
+          node -e "require('fs').writeFileSync(process.env.KEY_PATH, Buffer.from(process.env.RAW_KEY, 'base64'))"
         shell: bash
         env:
           RAW_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          KEY_PATH: ${{ github.workspace }}/tauri.key
 
       - name: Build Tauri app
         run: pnpm tauri build --target ${{ matrix.target }}
