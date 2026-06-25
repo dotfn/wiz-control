@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="1024" height="1024">
+  <defs>
+    <!-- Background Gradient -->
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#007aff"/>
+      <stop offset="100%" stop-color="#5856d6"/>
+    </linearGradient>
+    
+    <!-- Squircle Shadow -->
+    <filter id="shadow" x="-10%" y="-10%" width="130%" height="130%">
+      <feDropShadow dx="0" dy="16" stdDeviation="24" flood-color="#000000" flood-opacity="0.35"/>
+    </filter>
+
+    <!-- Sparkle Glow -->
+    <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="16" result="blur"/>
+      <feComposite in="SourceGraphic" in2="blur" operator="over"/>
+    </filter>
+  </defs>
+
+  <!-- Squircle Base with Shadow -->
+  <rect x="112" y="112" width="800" height="800" rx="200" ry="200" fill="url(#bgGrad)" filter="url(#shadow)"/>
+
+  <!-- Large Sparkle (Centered) -->
+  <path d="M 512,232 Q 512,512 232,512 Q 512,512 512,792 Q 512,512 792,512 Q 512,512 512,232 Z" fill="#ffffff" filter="url(#glow)"/>
+
+  <!-- Small Sparkle (Top-Right) -->
+  <path d="M 700,320 Q 700,380 640,380 Q 700,380 700,440 Q 700,380 760,380 Q 700,380 700,320 Z" fill="#ffffff" opacity="0.85"/>
+</svg>
