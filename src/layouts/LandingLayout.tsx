@@ -161,12 +161,14 @@ export const LandingLayout: React.FC<LandingLayoutProps> = ({ children }) => {
                 >
                   <Github className="w-3.5 h-3.5" aria-hidden="true" /> GitHub
             </a>
-            <Link
-              to="/download"
+            <a
+              href="https://github.com/dotfn/lumus-control"
+              target="_blank"
+              rel="noreferrer"
               className="text-xs text-theme-textSecondary hover:text-theme-text transition-colors"
             >
               Documentación
-            </Link>
+            </a>
           </div>
         </div>
       </footer>
