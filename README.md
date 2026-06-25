@@ -6,7 +6,7 @@
   <img src="https://img.shields.io/badge/React-18.x-61DAFB?logo=react&logoColor=white">
   <img src="https://img.shields.io/badge/Zustand-5.x-black">
   <img src="https://img.shields.io/badge/UDP_Port-38899-0066FF">
-  <img src="https://img.shields.io/github/actions/workflow/status/dotfn/lumus-control/build.yml?label=CI&logo=github">
+  <img src="https://img.shields.io/github/actions/workflow/status/dotfn/lumus-control/ci.yml?label=CI&logo=github">
 </p>
 
 Aplicación de escritorio nativa para descubrir y controlar bombillas inteligentes en tu red local. Sin nube, sin intermediarios — comunicación directa mediante **UDP** en tiempo real.
@@ -178,15 +178,10 @@ El backend tiene **12 tests unitarios** en `config.rs` y `network.rs` cubriendo 
 
 ## CI / CD
 
-El repositorio incluye un workflow de GitHub Actions (`.github/workflows/build.yml`) con tres fases:
+El repositorio cuenta con dos workflows de GitHub Actions:
 
-```
-PR a main ──→ quality (typecheck + lint + cargo test)
-Push a main ─→ quality → build (macOS .dmg como artifact)
-Tag v* ─────→ quality → build → release (GitHub Release público)
-```
-
-Cada release publicado en la pestaña [**Releases**](../../releases) incluye el instalador `.dmg` y las notas de cambio generadas automáticamente desde el historial de git.
+* **CI (`.github/workflows/ci.yml`)**: Ejecuta chequeos de calidad (`pnpm typecheck`, `pnpm lint` y `cargo test`) en cada push a ramas de desarrollo (`develop`, `feature/*`, `fix/*`) y en PRs dirigidos a `develop` o `main`.
+* **Release (`.github/workflows/release.yml`)**: Compila y empaqueta la aplicación de forma paralela para macOS (Apple Silicon) y Windows (x86_64), crea el Release en GitHub con notas auto-generadas, y actualiza el Homebrew Tap (únicamente para tags reales). Es ejecutable manualmente vía `workflow_dispatch`.
 
 ---
 

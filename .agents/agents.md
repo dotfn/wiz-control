@@ -62,53 +62,19 @@ chore/que-se-actualizo
 
 ---
 
-### `build.yml` — Build en main
+### `release.yml` — Build & Release (Tags o Manual)
 
-**Runner:** `macos-latest` / `macos-13` (requerido por Tauri)
-
-**Cuándo corre:**
-- Push a `main` con path filter: `src/**`, `src-tauri/**`, `package.json`, `pnpm-lock.yaml`
-- `workflow_dispatch` — trigger manual
-
-**Qué hace:**
-1. Build paralelo para `aarch64-apple-darwin` (Apple Silicon) y `x86_64-apple-darwin` (Intel)
-2. `cargo test --release` — **solo en aarch64** (unit tests son independientes de arch)
-3. `pnpm tauri build` — genera los `.dmg`
-4. Upload de artifacts
-
-**No duplica** `typecheck` ni `lint` — esos son responsabilidad del `ci.yml`.
-
----
-
-### `release.yml` — Build & Release en tags
-
-**Runner:** `macos-latest` / `macos-13` + `ubuntu-latest` (release job)
+**Runner:** `macos-latest` (build macOS) / `windows-latest` (build Windows) / `ubuntu-latest` (release/tap jobs)
 
 **Cuándo corre:**
-- Tags `v*` — **siempre, sin path filter** (separado de `build.yml` para evitar que el path filter bloquee releases)
-- `cancel-in-progress: false` — un release nunca se cancela a mitad
+- Push a tags `v*` — **siempre, sin path filter**.
+- `workflow_dispatch` — trigger manual para release candidates o pruebas de compilación (genera un borrador/draft en GitHub y omite la actualización del Homebrew Tap para seguridad).
+- `cancel-in-progress: false` — un release nunca se cancela a mitad.
 
 **Qué hace:**
-1. Build paralelo para ambas arches
-2. `cargo test --release` en aarch64
-3. `pnpm tauri build` — genera los `.dmg`
-4. Crea GitHub Release con changelog auto-generado
-
----
-
-### `update-tap.yml` — Homebrew Tap
-
-**Runner:** `ubuntu-latest` (1× costo, solo hace git/curl/sed)
-
-**Cuándo corre:** Solo cuando se publica un release (`release: published`).
-
-**Qué hace:**
-1. Descarga los DMG del release (`curl --fail` — falla si la URL no existe)
-2. Valida que los SHA256 no estén vacíos antes de escribir el cask
-3. Actualiza `Casks/lumus-control.rb` en el repo `dotfn/homebrew-lumus`
-4. Commit y push automático
-
-**Secrets requeridos:** `TAP_PAT` — Personal Access Token con permisos de escritura en el tap repo.
+1. Build paralelo para macOS Apple Silicon (`aarch64-apple-darwin`) y Windows (`x86_64-pc-windows-msvc`).
+2. Genera las firmas digitales y crea la GitHub Release (pública si es tag real, borrador/draft si es manual).
+3. **Update Homebrew Tap (job integrado)**: Actualiza el Tap de Homebrew de forma instantánea y local usando el artefacto macOS generado, filtrando que el tag sea estrictamente de producción (`vX.Y.Z`) para no ensuciar el repositorio de Homebrew con release candidates o tags de prueba.
 
 ---
 
@@ -133,7 +99,7 @@ git checkout main
 git merge develop
 git tag v1.2.0
 git push origin main --tags
-# El workflow build.yml + update-tap.yml se disparan automáticamente
+# El workflow release.yml se dispara automáticamente
 ```
 
 ### Hotfix urgente
@@ -178,10 +144,8 @@ lumus-control/
 │   └── agents.md        # Este archivo
 ├── .github/
 │   └── workflows/
-│       ├── ci.yml          # Quality checks (typecheck + lint) — ubuntu-latest
-│       ├── build.yml       # Build en main con path filters — macos runners
-│       ├── release.yml     # Build + Release en tags v* (macOS + Windows)
-│       └── update-tap.yml  # Homebrew tap auto-update — ubuntu-latest
+│       ├── ci.yml          # Quality checks (typecheck + lint + Rust tests) — ubuntu-latest
+│       └── release.yml     # Build + Release (tags v* o manual) — macOS, Windows, Linux
 ├── src/                 # Frontend React/TypeScript
 │   ├── components/
 │   ├── layouts/
