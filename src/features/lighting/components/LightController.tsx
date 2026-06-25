@@ -6,11 +6,13 @@ import { ColorPicker } from './ColorPicker';
 interface LightControllerProps {
   state: LightState;
   onStateChange: (updatedState: Partial<LightState>) => void;
+  hidePowerAndBrightness?: boolean;
 }
 
 export const LightController: React.FC<LightControllerProps> = ({
   state,
   onStateChange,
+  hidePowerAndBrightness = false,
 }) => {
   const [activeTab, setActiveTab] = useState<'color' | 'white'>(
     state.temp !== undefined && state.sceneId === undefined ? 'white' : 'color'
@@ -36,37 +38,41 @@ export const LightController: React.FC<LightControllerProps> = ({
 
   return (
     <div className="space-y-5">
-      {/* Power Control Row */}
-      <div className="flex items-center justify-between">
-        <button
-          onClick={handlePower}
-          className={`flex items-center gap-2 px-4 py-2.5 rounded-xl border font-semibold text-xs transition-all duration-200 ${
-            state.state
-              ? 'bg-theme-green border-transparent text-white shadow-[0_4px_12px_rgba(52,199,89,0.25)]'
-              : 'bg-theme-input border-theme-border text-theme-textSecondary hover:opacity-85'
-          }`}
-        >
-          <Power className="w-3.5 h-3.5" />
-          {state.state ? 'Apagar' : 'Encender'}
-        </button>
-        <span className="text-[11px] font-semibold uppercase tracking-wider text-theme-textSecondary font-display flex items-center gap-1 transition-colors duration-300">
-          <Sun className="w-3.5 h-3.5" />
-          Brillo: {state.dimming}%
-        </span>
-      </div>
+      {!hidePowerAndBrightness && (
+        <>
+          {/* Power Control Row */}
+          <div className="flex items-center justify-between">
+            <button
+              onClick={handlePower}
+              className={`flex items-center gap-2 px-4 py-2.5 rounded-xl border font-semibold text-xs transition-all duration-200 ${
+                state.state
+                  ? 'bg-theme-green border-transparent text-white shadow-[0_4px_12px_rgba(52,199,89,0.25)]'
+                  : 'bg-theme-input border-theme-border text-theme-textSecondary hover:opacity-85'
+              }`}
+            >
+              <Power className="w-3.5 h-3.5" />
+              {state.state ? 'Apagar' : 'Encender'}
+            </button>
+            <span className="text-[11px] font-semibold uppercase tracking-wider text-theme-textSecondary font-display flex items-center gap-1 transition-colors duration-300">
+              <Sun className="w-3.5 h-3.5" />
+              Brillo: {state.dimming}%
+            </span>
+          </div>
 
-      {/* Brightness Slider */}
-      <div className="space-y-1">
-        <input
-          type="range"
-          min="10"
-          max="100"
-          value={state.dimming}
-          onChange={handleBrightnessInput}
-          className="w-full"
-          aria-label={`Brillo: ${state.dimming}%`}
-        />
-      </div>
+          {/* Brightness Slider */}
+          <div className="space-y-1">
+            <input
+              type="range"
+              min="10"
+              max="100"
+              value={state.dimming}
+              onChange={handleBrightnessInput}
+              className="w-full"
+              aria-label={`Brillo: ${state.dimming}%`}
+            />
+          </div>
+        </>
+      )}
 
       {/* Mode Tabs */}
       <div className="flex bg-theme-input border border-theme-border rounded-lg p-0.5 transition-colors duration-300">
