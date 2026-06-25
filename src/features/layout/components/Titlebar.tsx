@@ -1,6 +1,7 @@
 import React from 'react';
 import { ThemeToggle } from '../../settings/components/ThemeToggle';
 import { UpdaterWidget } from '../../updater/components/UpdaterWidget';
+import { isTauri } from '../../../utils/tauri';
 
 export const Titlebar: React.FC = () => {
   return (
@@ -11,7 +12,7 @@ export const Titlebar: React.FC = () => {
       aria-label="Barra de título de la aplicación"
     >
       {/* Spacer for native macOS Traffic Lights */}
-      <div className="w-[72px]" />
+      {isTauri() && <div className="w-[72px]" />}
 
       {/* App Centered Title */}
       <div data-tauri-drag-region className="absolute left-1/2 -translate-x-1/2 font-sans font-semibold text-theme-text tracking-wide pointer-events-none text-[11px] transition-colors duration-300">

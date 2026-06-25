@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Sparkles, Sun, LayoutDashboard, Palette, Clock, Settings, Laptop } from 'lucide-react';
+import { Sparkles, Sun, LayoutDashboard, Palette, Clock, Settings, Laptop, X, Wifi } from 'lucide-react';
 import { getCurrentWebviewWindow } from '@tauri-apps/api/webviewWindow';
 import { getLampRgbColor } from '../utils/color';
 import { isTauri } from '../utils/tauri';
@@ -28,6 +28,7 @@ type TabId = 'dashboard' | 'scenes' | 'timer' | 'settings';
 
 export const ControlPage: React.FC = () => {
   const [activeTab, setActiveTab] = useState<TabId>('dashboard');
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const { isDemo } = useDemo();
 
   // Device store selector
@@ -143,9 +144,46 @@ export const ControlPage: React.FC = () => {
           </div>
         )}
 
-        <div className="flex-1 flex overflow-hidden w-full">
-          {/* Left Sidebar Pane: Devices & Scanning */}
-          <aside className="w-[280px] bg-theme-sidebar border-r border-theme-border flex flex-col p-5 overflow-y-auto space-y-6 flex-shrink-0 transition-colors duration-300">
+        <div className="flex-1 flex overflow-hidden w-full relative">
+          {/* Mobile Sidebar Drawer (aside visible as overlay) */}
+          {sidebarOpen && (
+            <div className="fixed inset-0 z-50 flex md:hidden animate-fade-in">
+              {/* Backdrop overlay */}
+              <div
+                className="fixed inset-0 bg-black/40 backdrop-blur-sm transition-opacity duration-300"
+                onClick={() => setSidebarOpen(false)}
+              />
+
+              {/* Sidebar content drawer */}
+              <aside className="relative w-[280px] max-w-[85vw] h-full bg-theme-sidebar border-r border-theme-border flex flex-col p-5 overflow-y-auto space-y-6 transition-transform duration-300 ease-out shadow-2xl">
+                {/* Close button inside Drawer header */}
+                <div className="flex justify-between items-center pb-2 border-b border-theme-border">
+                  <span className="text-xs font-bold text-theme-text uppercase tracking-wider">Menú de Red</span>
+                  <button
+                    onClick={() => setSidebarOpen(false)}
+                    className="p-1 hover:bg-theme-border rounded-lg text-theme-textSecondary hover:text-theme-text transition-colors"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                </div>
+
+                <DeviceSelector
+                  selectedIp={selectedIp}
+                  onSelect={(ip) => {
+                    selectDevice(ip);
+                    setSidebarOpen(false);
+                  }}
+                  devices={devices}
+                  onScan={scan}
+                  isScanning={isScanning}
+                  onUpdateDeviceName={updateDeviceName}
+                />
+              </aside>
+            </div>
+          )}
+
+          {/* Left Sidebar Pane: Devices & Scanning (desktop only) */}
+          <aside className="hidden md:flex w-[280px] bg-theme-sidebar border-r border-theme-border flex-col p-5 overflow-y-auto space-y-6 flex-shrink-0 transition-colors duration-300">
             <DeviceSelector
               selectedIp={selectedIp}
               onSelect={selectDevice}
@@ -160,24 +198,34 @@ export const ControlPage: React.FC = () => {
           <main className="flex-1 flex flex-col overflow-hidden p-6 space-y-6 bg-theme-main transition-colors duration-300">
             {/* Header Section */}
             <header className="flex items-center justify-between pb-4 border-b border-theme-border transition-colors duration-300">
-              <div>
-                <h1 className="font-display font-bold text-xl tracking-tight text-theme-text flex items-center gap-2 transition-colors duration-300">
-                  Lumus Control
-                  {circadianActive && (
-                    <span className="text-[10px] bg-blue-500/15 text-blue-500 border border-blue-500/30 px-1.5 py-0.5 rounded-md flex items-center gap-0.5 animate-bounce">
-                      <Sparkles className="w-2.5 h-2.5" />
-                      Sincronizado
-                    </span>
-                  )}
-                </h1>
-                <p className="text-[10px] text-theme-textSecondary font-mono mt-0.5 flex items-center gap-1.5 font-semibold transition-colors duration-300">
-                  {selectedIp && isConnected ? (
-                    <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse inline-block" />
-                  ) : (
-                    <span className="w-2 h-2 rounded-full bg-red-400 inline-block" />
-                  )}
-                  <span className="ml-1">{selectedIp ? `${connectionStatus} · ${selectedIp}` : connectionStatus}</span>
-                </p>
+              <div className="flex items-center gap-3">
+                {/* Botón Wifi responsivo para abrir el menú lateral en móvil */}
+                <button
+                  onClick={() => setSidebarOpen(true)}
+                  className="md:hidden p-2 hover:bg-theme-input rounded-xl border border-theme-border text-theme-text transition-all active:scale-95 flex items-center justify-center"
+                  aria-label="Abrir lista de dispositivos"
+                >
+                  <Wifi className="w-4 h-4" />
+                </button>
+                <div>
+                  <h1 className="font-display font-bold text-xl tracking-tight text-theme-text flex items-center gap-2 transition-colors duration-300">
+                    Lumus Control
+                    {circadianActive && (
+                      <span className="text-[10px] bg-blue-500/15 text-blue-500 border border-blue-500/30 px-1.5 py-0.5 rounded-md flex items-center gap-0.5 animate-bounce">
+                        <Sparkles className="w-2.5 h-2.5" />
+                        Sincronizado
+                      </span>
+                    )}
+                  </h1>
+                  <p className="text-[10px] text-theme-textSecondary font-mono mt-0.5 flex items-center gap-1.5 font-semibold transition-colors duration-300">
+                    {selectedIp && isConnected ? (
+                      <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse inline-block" />
+                    ) : (
+                      <span className="w-2 h-2 rounded-full bg-red-400 inline-block" />
+                    )}
+                    <span className="ml-1">{selectedIp ? `${connectionStatus} · ${selectedIp}` : connectionStatus}</span>
+                  </p>
+                </div>
               </div>
 
               {selectedIp && (
@@ -210,14 +258,14 @@ export const ControlPage: React.FC = () => {
                     aria-selected={isActive}
                     aria-controls={`tabpanel-${tab.id}`}
                     onClick={() => setActiveTab(tab.id)}
-                    className={`flex-1 py-1.5 px-3 text-xs font-semibold rounded-lg flex items-center justify-center gap-1.5 transition-all duration-150 ${
+                    className={`flex-1 py-1.5 px-2 text-xs font-semibold rounded-lg flex items-center justify-center gap-1.5 transition-all duration-150 ${
                       isActive
                         ? 'bg-theme-card text-theme-text shadow-sm'
                         : 'text-theme-textSecondary hover:text-theme-text font-normal'
                     }`}
                   >
                     <TabIcon className="w-3.5 h-3.5" aria-hidden="true" />
-                    <span>{tab.label}</span>
+                    <span className="hidden min-[400px]:inline">{tab.label}</span>
                   </button>
                 );
               })}
