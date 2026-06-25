@@ -10,7 +10,12 @@
     "typecheck": "tsc --noEmit",
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
     "preview": "vite preview",
-    "prepare": "husky"
+    "prepare": "husky",
+    "rust:format": "cargo fmt --manifest-path src-tauri/Cargo.toml --all -- --check",
+    "rust:clippy": "cargo clippy --manifest-path src-tauri/Cargo.toml --all-targets -- -D warnings",
+    "rust:test": "cargo test --manifest-path src-tauri/Cargo.toml",
+    "rust:check-release": "cargo check --manifest-path src-tauri/Cargo.toml --release",
+    "verify": "pnpm typecheck && pnpm lint && pnpm rust:format && pnpm rust:clippy && pnpm rust:test && pnpm rust:check-release"
   },
   "dependencies": {
     "@tauri-apps/api": "^2.11.1",

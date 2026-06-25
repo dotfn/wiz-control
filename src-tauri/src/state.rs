@@ -1,7 +1,7 @@
+use crate::models::AppConfig;
 use std::sync::atomic::AtomicBool;
 use std::sync::Arc;
 use std::sync::Mutex;
-use crate::models::AppConfig;
 
 /// Caché en memoria de la configuración del usuario.
 /// Cargada desde disco al iniciar la app y usada por los comandos de lectura

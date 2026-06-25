@@ -1,5 +1,5 @@
-use std::collections::HashMap;
 use serde_json::Value;
+use std::collections::HashMap;
 use tauri::Emitter;
 
 use crate::config::{get_config_path, write_config};
@@ -14,7 +14,10 @@ use crate::state::{ActiveDeviceState, ConfigState};
 pub fn get_device_names(
     config_state: tauri::State<'_, ConfigState>,
 ) -> Result<HashMap<String, String>, AppError> {
-    let config = config_state.0.lock().map_err(|e| AppError::Config(e.to_string()))?;
+    let config = config_state
+        .0
+        .lock()
+        .map_err(|e| AppError::Config(e.to_string()))?;
     Ok(config.device_names.clone())
 }
 
@@ -43,7 +46,10 @@ pub async fn save_device_name(
     // El guard del Mutex debe liberarse antes de la escritura a disco para no
     // mantener el lock durante el I/O. Clonamos la config y liberamos el guard.
     let updated_config = {
-        let mut config = config_state.0.lock().map_err(|e| AppError::Config(e.to_string()))?;
+        let mut config = config_state
+            .0
+            .lock()
+            .map_err(|e| AppError::Config(e.to_string()))?;
         config.device_names.insert(ip, name);
         config.clone()
     };
@@ -56,10 +62,11 @@ pub async fn save_device_name(
 /// Devuelve la configuración completa del usuario desde la caché en memoria.
 /// Síncrono: no realiza I/O, solo lee el Mutex en memoria.
 #[tauri::command]
-pub fn get_preferences(
-    config_state: tauri::State<'_, ConfigState>,
-) -> Result<AppConfig, AppError> {
-    let config = config_state.0.lock().map_err(|e| AppError::Config(e.to_string()))?;
+pub fn get_preferences(config_state: tauri::State<'_, ConfigState>) -> Result<AppConfig, AppError> {
+    let config = config_state
+        .0
+        .lock()
+        .map_err(|e| AppError::Config(e.to_string()))?;
     Ok(config.clone())
 }
 
@@ -81,7 +88,10 @@ pub async fn save_preferences(
 
     // Actualiza la caché en memoria y libera ambos locks antes del I/O de disco.
     let updated_config = {
-        let mut config = config_state.0.lock().map_err(|e| AppError::Config(e.to_string()))?;
+        let mut config = config_state
+            .0
+            .lock()
+            .map_err(|e| AppError::Config(e.to_string()))?;
 
         if let Some(ref ip) = last_ip {
             config.last_ip = Some(ip.clone());
@@ -95,9 +105,10 @@ pub async fn save_preferences(
 
         if let Some(ref t) = theme {
             if t != "light" && t != "dark" {
-                return Err(AppError::Validation(
-                    format!("Tema inválido: '{}'. Debe ser 'light' o 'dark'.", t),
-                ));
+                return Err(AppError::Validation(format!(
+                    "Tema inválido: '{}'. Debe ser 'light' o 'dark'.",
+                    t
+                )));
             }
             config.theme = Some(t.clone());
         }
@@ -127,12 +138,16 @@ pub async fn get_state(ip: String) -> Result<Value, AppError> {
         "params": {}
     });
     let resp = send_udp_cmd(&ip, &payload).await?;
-    Ok(resp.get("result").cloned().unwrap_or(serde_json::Value::Null))
+    Ok(resp
+        .get("result")
+        .cloned()
+        .unwrap_or(serde_json::Value::Null))
 }
 
 /// Envía un comando de control a un dispositivo y emite el nuevo estado al frontend.
 /// Asíncrono: realiza I/O de red con timeout de 1500 ms.
 #[tauri::command]
+#[allow(clippy::too_many_arguments)]
 pub async fn control(
     app: tauri::AppHandle,
     ip: String,
@@ -145,21 +160,21 @@ pub async fn control(
     scene_id: Option<u8>,
 ) -> Result<Value, AppError> {
     if let Some(d) = dimming {
-        if d < 10 || d > 100 {
+        if !(10..=100).contains(&d) {
             return Err(AppError::Validation(
                 "El brillo debe estar entre 10 y 100".to_string(),
             ));
         }
     }
     if let Some(t) = temp {
-        if t < 2200 || t > 6500 {
+        if !(2200..=6500).contains(&t) {
             return Err(AppError::Validation(
                 "La temperatura debe estar entre 2200K y 6500K".to_string(),
             ));
         }
     }
     if let Some(s_id) = scene_id {
-        if s_id < 1 || s_id > 32 {
+        if !(1..=32).contains(&s_id) {
             return Err(AppError::Validation(
                 "El ID de escena debe estar entre 1 y 32".to_string(),
             ));
@@ -182,7 +197,10 @@ pub async fn control(
         params.insert("b".to_string(), serde_json::Value::Number(bv.into()));
     }
     if let Some(s_id) = scene_id {
-        params.insert("sceneId".to_string(), serde_json::Value::Number(s_id.into()));
+        params.insert(
+            "sceneId".to_string(),
+            serde_json::Value::Number(s_id.into()),
+        );
     }
 
     let payload = serde_json::json!({

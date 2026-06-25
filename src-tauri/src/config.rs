@@ -1,9 +1,9 @@
+use crate::errors::AppError;
+use crate::models::AppConfig;
 use std::fs::{self, File};
 use std::io::Write;
 use std::path::PathBuf;
 use tauri::Manager;
-use crate::errors::AppError;
-use crate::models::AppConfig;
 
 /// Resuelve la ruta al archivo `config.json` dentro del directorio de datos
 /// de la aplicación gestionado por Tauri. Crea el directorio si no existe.
@@ -61,8 +61,7 @@ pub fn write_config(path: &PathBuf, config: &AppConfig) -> Result<(), AppError> 
 
     // Escribe en el archivo temporal y garantiza el flush a disco físico.
     {
-        let mut tmp_file =
-            File::create(&tmp_path).map_err(|e| AppError::Config(e.to_string()))?;
+        let mut tmp_file = File::create(&tmp_path).map_err(|e| AppError::Config(e.to_string()))?;
         tmp_file
             .write_all(content.as_bytes())
             .map_err(|e| AppError::Config(e.to_string()))?;
@@ -118,9 +117,11 @@ mod tests {
     #[test]
     fn write_and_read_roundtrip() {
         let path = unique_test_path("roundtrip");
-        let mut config = AppConfig::default();
-        config.last_ip = Some("192.168.1.42".to_string());
-        config.theme = Some("dark".to_string());
+        let mut config = AppConfig {
+            last_ip: Some("192.168.1.42".to_string()),
+            theme: Some("dark".to_string()),
+            ..Default::default()
+        };
         config
             .device_names
             .insert("192.168.1.42".to_string(), "Escritorio".to_string());

@@ -1,8 +1,8 @@
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Arc;
 use std::time::Duration;
-use tauri::Manager;
 use tauri::Emitter;
+use tauri::Manager;
 
 use crate::models::DeviceStatePayload;
 use crate::network::send_udp_cmd;
@@ -56,8 +56,10 @@ pub fn start_polling(app_handle: tauri::AppHandle, shutdown: Arc<AtomicBool>) {
 
                 let event_payload = match result {
                     Ok(resp) => {
-                        let state_val =
-                            resp.get("result").cloned().unwrap_or(serde_json::Value::Null);
+                        let state_val = resp
+                            .get("result")
+                            .cloned()
+                            .unwrap_or(serde_json::Value::Null);
                         DeviceStatePayload {
                             ip: ip.clone(),
                             online: true,

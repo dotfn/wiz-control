@@ -1,9 +1,9 @@
+use crate::errors::AppError;
+use serde_json::Value;
 use std::net::{IpAddr, SocketAddr};
 use std::time::Duration;
-use serde_json::Value;
 use tokio::net::UdpSocket;
 use tokio::time::timeout;
-use crate::errors::AppError;
 
 /// Valida que la cadena de texto dada sea una dirección IP válida (IPv4 o IPv6).
 pub fn validate_ip(ip: &str) -> Result<IpAddr, AppError> {
@@ -134,7 +134,10 @@ mod tests {
     fn validate_ip_accepts_ipv4_loopback() {
         let result = validate_ip("127.0.0.1");
         assert!(result.is_ok());
-        assert_eq!(result.unwrap(), IpAddr::V4(std::net::Ipv4Addr::new(127, 0, 0, 1)));
+        assert_eq!(
+            result.unwrap(),
+            IpAddr::V4(std::net::Ipv4Addr::new(127, 0, 0, 1))
+        );
     }
 
     #[test]
