@@ -1,10 +1,5 @@
 # Changelog
 
-## [0.3.11] — 2026-06-26
-
-### Fixes
-- **CI/CD Release**: Corregida la lectura de firmas (`.sig`) en el workflow de release para evitar firmas vacías en `update.json` y solucionar el error de actualización *"Invalid encoding in minisign data"*.
-
 ## [0.3.10] — 2026-06-25
 
 ### Features
