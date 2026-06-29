@@ -281,9 +281,10 @@ jobs:
             echo "  url \"https://github.com/dotfn/lumus-control/releases/download/v#{version}/lumus-control_#{version}_aarch64.dmg\","
             echo '      verified: "github.com/dotfn/lumus-control/"'
             echo '  name "Lumus Control"'
-            echo '  desc "Panel local para controlar lámparas WiZ via UDP"'
+            echo '  desc "Local control panel for WiZ smart lamps over UDP"'
             echo '  homepage "https://lumus-control.vercel.app"'
             echo ""
+            echo '  depends_on macos: ">= :big_sur"'
             echo "  depends_on arch: :arm64"
             echo ""
             echo "  livecheck do"
@@ -297,6 +298,14 @@ jobs:
             echo '    system_command "/usr/bin/xattr",'
             echo '                   args: ["-dr", "com.apple.quarantine", "#{appdir}/Lumus Control.app"]'
             echo "  end"
+            echo ""
+            echo "  zap trash: ["
+            echo '    "~/Library/Application Support/com.lumuscontrol.desktop",'
+            echo '    "~/Library/Caches/com.lumuscontrol.desktop",'
+            echo '    "~/Library/Logs/com.lumuscontrol.desktop",'
+            echo '    "~/Library/WebKit/com.lumuscontrol.desktop",'
+            echo '    "~/Library/Saved Application State/com.lumuscontrol.desktop.savedState",'
+            echo "  ]"
             echo "end"
           } > Casks/lumus-control.rb
 
