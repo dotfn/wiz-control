@@ -19,7 +19,7 @@ const deviceNames: Record<string, string> = {
 
 let lastMac: string | null = VIRTUAL_MAC;
 let theme: string | null = 'dark';
-let currentIp = VIRTUAL_IP;
+const currentIp = VIRTUAL_IP;
 
 const subscribers = new Set<(payload: DeviceStatePayload) => void>();
 

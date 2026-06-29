@@ -23,15 +23,14 @@ pub fn read_config_from_path(path: &PathBuf) -> Result<AppConfig, AppError> {
         return Ok(AppConfig::default());
     }
     let content = fs::read_to_string(path).map_err(|e| AppError::Config(e.to_string()))?;
-    let migrated: MigratedConfig = serde_json::from_str(&content)
-        .map_err(|e| AppError::Config(e.to_string()))?;
+    let migrated: MigratedConfig =
+        serde_json::from_str(&content).map_err(|e| AppError::Config(e.to_string()))?;
     Ok(migrated.into_app_config())
 }
 
 #[cfg_attr(not(test), allow(dead_code))]
 pub fn write_config(path: &PathBuf, config: &AppConfig) -> Result<(), AppError> {
-    let json = serde_json::to_string_pretty(config)
-        .map_err(|e| AppError::Config(e.to_string()))?;
+    let json = serde_json::to_string_pretty(config).map_err(|e| AppError::Config(e.to_string()))?;
     write_json_string(path, &json)
 }
 
@@ -74,10 +73,7 @@ pub fn migrate_device_names(
 
     let mut changed = false;
     // Only IPv4 keys have dots; MACs use ':' but not '.', so this filter is safe
-    let ip_keys: Vec<String> = names.keys()
-        .filter(|k| k.contains('.'))
-        .cloned()
-        .collect();
+    let ip_keys: Vec<String> = names.keys().filter(|k| k.contains('.')).cloned().collect();
 
     for ip in ip_keys {
         if let Some(&mac) = ip_to_mac.get(ip.as_str()) {
@@ -179,7 +175,10 @@ mod tests {
         assert!(changed);
         assert_eq!(names.get("AA:BB:CC:DD:EE:10"), Some(&"Living".to_string()));
         assert_eq!(names.get("AA:BB:CC:DD:EE:20"), Some(&"Cocina".to_string()));
-        assert_eq!(names.get("AA:BB:CC:DD:EE:11"), Some(&"Dormitorio".to_string()));
+        assert_eq!(
+            names.get("AA:BB:CC:DD:EE:11"),
+            Some(&"Dormitorio".to_string())
+        );
         assert!(!names.contains_key("192.168.1.10"));
         assert!(!names.contains_key("192.168.1.20"));
         assert_eq!(names.len(), 3);

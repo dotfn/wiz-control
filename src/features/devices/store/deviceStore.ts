@@ -46,7 +46,7 @@ function migrateExcludedIps(): string[] {
         return parsed;
       }
     }
-  } catch {}
+  } catch { /* localStorage unavailable */ }
   try {
     const macs = localStorage.getItem('excluded_macs');
     return macs ? JSON.parse(macs) : [];

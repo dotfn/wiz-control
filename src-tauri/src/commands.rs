@@ -56,8 +56,7 @@ pub async fn save_device_name(
         migrate_device_names(&mut config.device_names, &map);
 
         config.device_names.insert(mac, name);
-        serde_json::to_string_pretty(&*config)
-            .map_err(|e| AppError::Config(e.to_string()))?
+        serde_json::to_string_pretty(&*config).map_err(|e| AppError::Config(e.to_string()))?
     };
     tokio::task::spawn_blocking(move || write_json_string(&path, &json))
         .await
@@ -117,8 +116,7 @@ pub async fn save_preferences(
             .map_err(|e| AppError::Config(e.to_string()))?;
         migrate_device_names(&mut config.device_names, &map);
 
-        serde_json::to_string_pretty(&*config)
-            .map_err(|e| AppError::Config(e.to_string()))?
+        serde_json::to_string_pretty(&*config).map_err(|e| AppError::Config(e.to_string()))?
     };
 
     tokio::task::spawn_blocking(move || write_json_string(&path, &json))
@@ -127,9 +125,7 @@ pub async fn save_preferences(
 }
 
 #[tauri::command]
-pub async fn discover(
-    device_map: tauri::State<'_, DeviceMapState>,
-) -> Result<Value, AppError> {
+pub async fn discover(device_map: tauri::State<'_, DeviceMapState>) -> Result<Value, AppError> {
     let devices = discover_udp().await?;
 
     // Update the device map (MAC -> IP) with discovered devices

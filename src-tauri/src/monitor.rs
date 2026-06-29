@@ -135,7 +135,9 @@ pub fn start_polling(app_handle: tauri::AppHandle, shutdown: Arc<AtomicBool>) {
                                     map_guard.insert(mac.clone(), ip.clone());
                                     log::warn!(
                                         "MAC inesperada {} en IP {} (rastreando {})",
-                                        new_mac, ip, mac
+                                        new_mac,
+                                        ip,
+                                        mac
                                     );
                                 }
                             }
