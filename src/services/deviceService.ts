@@ -5,6 +5,7 @@ import { LightState } from '../types';
 
 export interface DeviceStatePayload {
   ip: string;
+  mac: string;
   online: boolean;
   state: LightState | null;
 }

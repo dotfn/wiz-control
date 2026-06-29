@@ -10,6 +10,7 @@ export interface LightState {
 
 export interface LightDevice {
   ip: string;
+  mac: string;
   name?: string;
   state?: LightState;
 }
@@ -23,6 +24,7 @@ export interface LightScene {
 
 export interface DiscoverDeviceResponse {
   ip: string;
+  mac: string;
   state?: {
     state: boolean;
     dimming: number;
@@ -36,6 +38,6 @@ export interface DiscoverDeviceResponse {
 
 export interface PreferencesResponse {
   device_names: Record<string, string>;
-  last_ip: string | null;
+  last_mac: string | null;
   theme: string | null;
 }

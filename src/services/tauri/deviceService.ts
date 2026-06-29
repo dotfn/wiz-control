@@ -13,7 +13,6 @@ export const tauriDeviceService = {
   },
 
   async control(ip: string, payload: Partial<LightState>): Promise<void> {
-    // Frontend validation — mirrors backend constraints in commands.rs
     if (payload.dimming !== undefined && (payload.dimming < 10 || payload.dimming > 100)) {
       throw new Error(`Dimming out of range: ${payload.dimming}. Expected 10–100.`);
     }
@@ -46,12 +45,12 @@ export const tauriDeviceService = {
     return await invoke<PreferencesResponse>('get_preferences');
   },
 
-  async savePreferences(lastIp: string | null, theme?: string): Promise<void> {
-    await invoke('save_preferences', { lastIp, theme });
+  async savePreferences(lastMac: string | null, theme?: string): Promise<void> {
+    await invoke('save_preferences', { lastMac, theme });
   },
 
-  async saveDeviceName(ip: string, name: string): Promise<void> {
-    await invoke('save_device_name', { ip, name });
+  async saveDeviceName(mac: string, name: string): Promise<void> {
+    await invoke('save_device_name', { mac, name });
   },
 
   async subscribeToDeviceState(callback: (payload: DeviceStatePayload) => void): Promise<UnlistenFn> {

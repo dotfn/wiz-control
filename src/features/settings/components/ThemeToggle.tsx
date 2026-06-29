@@ -5,16 +5,15 @@ import { useDeviceStore } from '../../devices/store/deviceStore';
 
 export const ThemeToggle: React.FC = () => {
   const { theme, toggleTheme } = useSettingsStore();
-  const selectedIp = useDeviceStore((s) => s.selectedIp);
+  const selectedMac = useDeviceStore((s) => s.selectedMac);
 
   return (
     <button
-      onClick={() => toggleTheme(selectedIp)}
+      onClick={() => toggleTheme(selectedMac)}
       className="p-1.5 rounded-lg border border-theme-border bg-theme-input hover:bg-theme-border text-theme-textSecondary hover:text-theme-text transition-colors duration-200 active:scale-95 flex items-center justify-center relative overflow-hidden group shadow-none"
       aria-label={theme === 'dark' ? 'Cambiar a modo claro' : 'Cambiar a modo oscuro'}
     >
       <div className="relative w-4 h-4 flex items-center justify-center">
-        {/* Sun Icon for switching to light mode */}
         <Sun
           className={`w-4 h-4 absolute transition-[opacity,transform] duration-300 ${
             theme === 'dark'
@@ -23,7 +22,6 @@ export const ThemeToggle: React.FC = () => {
           }`}
           aria-hidden="true"
         />
-        {/* Moon Icon for switching to dark mode */}
         <Moon
           className={`w-4 h-4 absolute transition-[opacity,transform] duration-300 ${
             theme === 'light'

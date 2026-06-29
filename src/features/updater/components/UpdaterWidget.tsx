@@ -130,7 +130,7 @@ export const UpdaterWidget: React.FC = () => {
         <div
           role="menu"
           aria-label="Menú de actualización"
-          className="absolute right-0 top-10 w-80 glass-card bg-theme-card/95 border border-theme-border backdrop-blur-2xl rounded-[28px] shadow-none p-4 flex flex-col gap-4 z-50 animate-fade-in text-left select-text"
+          className="absolute right-0 top-10 w-80 glass-card bg-theme-card border border-theme-border rounded-[28px] shadow-none p-4 flex flex-col gap-4 z-50 animate-fade-in text-left select-text"
         >
           {/* Header */}
           <div className="flex items-center justify-between border-b border-theme-border pb-3">

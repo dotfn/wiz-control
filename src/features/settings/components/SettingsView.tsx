@@ -8,7 +8,7 @@ import { getCircadianPoints, formatHour } from '../../lighting/utils/circadian';
 
 export const SettingsView: React.FC = () => {
   const { theme, toggleTheme } = useSettingsStore();
-  const { selectedIp, connectionStatus, scan, isScanning } = useDeviceStore();
+  const { selectedMac, connectionStatus, scan, isScanning, macToIp } = useDeviceStore();
   const {
     isConnected,
     refreshState,
@@ -19,19 +19,20 @@ export const SettingsView: React.FC = () => {
     syncLocationError
   } = useLightingStore();
 
+  const resolvedIp = selectedMac ? macToIp[selectedMac] : null;
+
   const handleThemeChange = (selectedTheme: 'light' | 'dark') => {
     if (theme !== selectedTheme) {
-      toggleTheme(selectedIp);
+      toggleTheme(selectedMac);
     }
   };
 
   const handleTestConnection = () => {
-    if (selectedIp) {
-      refreshState(selectedIp);
+    if (resolvedIp) {
+      refreshState(resolvedIp);
     }
   };
 
-  // Circadian Rhythm timeline points (dynamically adapted from geolocation)
   const sunriseHour = location ? location.sunriseHour : 6.0;
   const sunsetHour = location ? location.sunsetHour : 19.0;
   const circadianPoints = getCircadianPoints(sunriseHour, sunsetHour);
@@ -39,7 +40,6 @@ export const SettingsView: React.FC = () => {
   return (
     <div className="space-y-6 max-w-4xl mx-auto animate-fade-in pb-6 shadow-none">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {/* Theme Preferences Card */}
         <div className="glass-card space-y-4 shadow-none">
           <div className="flex items-center gap-2 border-b border-theme-border pb-3">
             <Sun className="w-5 h-5 text-amber-500" />
@@ -50,7 +50,6 @@ export const SettingsView: React.FC = () => {
           </div>
 
           <div className="grid grid-cols-2 gap-4 pt-1">
-            {/* Light Mode Selector Card */}
             <button
               onClick={() => handleThemeChange('light')}
               className={`p-4 rounded-[28px] text-center flex flex-col items-center justify-center gap-2.5 transition-colors duration-200 active:scale-95 shadow-none ${theme === 'light'
@@ -67,7 +66,6 @@ export const SettingsView: React.FC = () => {
               </div>
             </button>
 
-            {/* Dark Mode Selector Card */}
             <button
               onClick={() => handleThemeChange('dark')}
               className={`p-4 rounded-[28px] text-center flex flex-col items-center justify-center gap-2.5 transition-colors duration-200 active:scale-95 shadow-none ${theme === 'dark'
@@ -86,7 +84,6 @@ export const SettingsView: React.FC = () => {
           </div>
         </div>
 
-        {/* Diagnostics & Connection Card */}
         <div className="glass-card space-y-4 shadow-none">
           <div className="flex items-center justify-between border-b border-theme-border pb-3">
             <div className="flex items-center gap-2">
@@ -96,7 +93,7 @@ export const SettingsView: React.FC = () => {
                 <p className="text-[10px] text-theme-textSecondary mt-0.5 tracking-apple-body-sm">Estado técnico del dispositivo activo.</p>
               </div>
             </div>
-            {selectedIp && (
+            {selectedMac && (
               <button
                 onClick={handleTestConnection}
                 title="Probar conexión"
@@ -109,12 +106,12 @@ export const SettingsView: React.FC = () => {
           </div>
 
           <div className="space-y-3 pt-1">
-            {selectedIp ? (
+            {selectedMac ? (
               <div className="space-y-2">
                 <div className="flex justify-between items-center bg-theme-card border border-theme-border rounded-[28px] p-4 shadow-none">
                   <div className="flex flex-col">
                     <span className="text-[10px] text-theme-textSecondary font-semibold uppercase tracking-wider tracking-apple-body-sm">Dirección IP</span>
-                    <span className=" text-xs text-theme-text font-bold mt-0.5">{selectedIp}</span>
+                    <span className=" text-xs text-theme-text font-bold mt-0.5">{resolvedIp || selectedMac.slice(0, 17)}</span>
                   </div>
                   <span className={`text-[10px] px-2.5 py-0.5 rounded-full font-bold border shadow-none ${isConnected
                       ? 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20'
@@ -154,7 +151,6 @@ export const SettingsView: React.FC = () => {
         </div>
       </div>
 
-      {/* Circadian Rhythm Card */}
       <div className="glass-card space-y-5 shadow-none">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-theme-border pb-3">
           <div className="flex items-center gap-2">
@@ -166,7 +162,7 @@ export const SettingsView: React.FC = () => {
               </p>
             </div>
           </div>
-          {selectedIp && (
+          {selectedMac && (
             <button
               onClick={applyCircadianRhythm}
               disabled={isSyncingLocation || circadianActive}
@@ -182,7 +178,6 @@ export const SettingsView: React.FC = () => {
           )}
         </div>
 
-        {/* Geolocation status info */}
         {location && (
           <div className="flex flex-col sm:flex-row sm:items-center gap-3 p-4 bg-theme-card/30 border border-theme-border rounded-[28px] text-[11px] justify-between shadow-none">
             <div className="flex items-center gap-2 text-theme-text font-semibold tracking-apple-body-sm">
@@ -215,7 +210,6 @@ export const SettingsView: React.FC = () => {
           </div>
         )}
 
-        {/* Informative description */}
         <div className="flex gap-2.5 p-5 bg-theme-accent/10 border border-theme-accent/20 rounded-[28px] text-xs text-theme-accent shadow-none">
           <Info className="w-4 h-4 shrink-0 text-theme-accent" />
           <p className="leading-relaxed text-[11px] tracking-apple-body-sm">
@@ -223,7 +217,6 @@ export const SettingsView: React.FC = () => {
           </p>
         </div>
 
-        {/* Horizontal visual timeline */}
         <div className="space-y-3 pt-2">
           <label className="text-[10px] font-bold uppercase tracking-wider text-theme-textSecondary block tracking-apple-body-sm">
             Cronograma del ciclo diario
@@ -262,7 +255,6 @@ export const SettingsView: React.FC = () => {
         </div>
       </div>
 
-      {/* About Card */}
       <div className="glass-card space-y-4 shadow-none">
         <div className="flex items-center gap-2 border-b border-theme-border pb-3">
           <Code2 className="w-5 h-5 text-theme-textSecondary" />

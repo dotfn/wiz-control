@@ -5,7 +5,7 @@ import { isTauri } from '../../../utils/tauri';
 
 interface SettingsState {
   theme: 'light' | 'dark';
-  toggleTheme: (selectedIp?: string | null) => void;
+  toggleTheme: (selectedMac?: string | null) => void;
   initTheme: () => void;
   syncThemeFromBackend: (backendTheme: string | null) => void;
 }
@@ -18,19 +18,17 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
     return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
   })(),
 
-  toggleTheme: (selectedIp?: string | null) => {
+  toggleTheme: (selectedMac?: string | null) => {
     const newTheme = get().theme === 'dark' ? 'light' : 'dark';
     set({ theme: newTheme });
     localStorage.setItem('theme', newTheme);
 
-    // Apply class to root HTML tag
     if (newTheme === 'dark') {
       document.documentElement.classList.add('dark');
     } else {
       document.documentElement.classList.remove('dark');
     }
 
-    // Set native system window theme & background color
     if (isTauri()) {
       try {
         const win = getCurrentWebviewWindow();
@@ -45,15 +43,11 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
       }
     }
 
-    // Save theme to backend — IP is provided by caller to avoid circular dependency
-    const ip = selectedIp !== undefined ? selectedIp : null;
-    deviceService.savePreferences(ip, newTheme).catch(() => {});
+    const mac = selectedMac !== undefined ? selectedMac : null;
+    deviceService.savePreferences(mac, newTheme).catch(() => {});
   },
 
   initTheme: () => {
-    // El script inline en index.html ya aplicó la clase 'dark' en el <html>
-    // antes del primer paint. Solo leemos el DOM para sincronizar el store
-    // y la ventana nativa de Tauri.
     const isDark = document.documentElement.classList.contains('dark');
     const finalTheme = isDark ? 'dark' : 'light';
 
@@ -76,8 +70,6 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
   },
 
   syncThemeFromBackend: (backendTheme: string | null) => {
-    // Solo aplica el tema del backend si localStorage está vacío
-    // (primera ejecución o storage limpiado).
     if (!localStorage.getItem('theme') && backendTheme) {
       const theme = backendTheme as 'light' | 'dark';
       localStorage.setItem('theme', theme);
@@ -90,4 +82,3 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
     }
   },
 }));
-

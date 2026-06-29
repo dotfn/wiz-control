@@ -4,35 +4,37 @@ import { LightDevice } from '../../../types';
 import { DeviceGroup } from '../store/deviceStore';
 
 interface DeviceSelectorProps {
-  selectedIp: string | null;
-  onSelect: (ip: string) => void;
+  selectedMac: string | null;
+  onSelect: (mac: string, ipOverride?: string) => void;
   devices: LightDevice[];
   onScan: () => Promise<void>;
   isScanning: boolean;
-  onUpdateDeviceName: (ip: string, name: string) => void;
-  excludedIps: string[];
-  onExcludeDevice: (ip: string) => void;
-  onIncludeDevice: (ip: string) => void;
+  onUpdateDeviceName: (mac: string, name: string) => void;
+  excludedMacs: string[];
+  onExcludeDevice: (mac: string) => void;
+  onIncludeDevice: (mac: string) => void;
   deviceNames: Record<string, string>;
+  macToIp: Record<string, string>;
   groups: DeviceGroup[];
   selectedGroupId: string | null;
-  onCreateGroup: (name: string, deviceIps: string[]) => void;
-  onUpdateGroup: (id: string, name: string, deviceIps: string[]) => void;
+  onCreateGroup: (name: string, deviceMacs: string[]) => void;
+  onUpdateGroup: (id: string, name: string, deviceMacs: string[]) => void;
   onDeleteGroup: (id: string) => void;
   onSelectGroup: (id: string | null) => void;
 }
 
 export const DeviceSelector: React.FC<DeviceSelectorProps> = ({
-  selectedIp,
+  selectedMac,
   onSelect,
   devices,
   onScan,
   isScanning,
   onUpdateDeviceName,
-  excludedIps,
+  excludedMacs,
   onExcludeDevice,
   onIncludeDevice,
   deviceNames,
+  macToIp,
   groups,
   selectedGroupId,
   onCreateGroup,
@@ -41,21 +43,19 @@ export const DeviceSelector: React.FC<DeviceSelectorProps> = ({
   onSelectGroup,
 }) => {
   const [manualIp, setManualIp] = useState('');
-  const [editingIp, setEditingIp] = useState<string | null>(null);
+  const [editingMac, setEditingMac] = useState<string | null>(null);
   const [tempName, setTempName] = useState('');
   const [showExcluded, setShowExcluded] = useState(false);
   const manualIpInputId = 'manual-ip-input';
   const editInputRef = useRef<HTMLInputElement>(null);
 
-  // Group creation & editing states
   const [isCreatingGroup, setIsCreatingGroup] = useState(false);
   const [editingGroupId, setEditingGroupId] = useState<string | null>(null);
   const [groupNameInput, setGroupNameInput] = useState('');
-  const [selectedGroupIps, setSelectedGroupIps] = useState<string[]>([]);
+  const [selectedGroupMacs, setSelectedGroupMacs] = useState<string[]>([]);
   const [expandedGroups, setExpandedGroups] = useState<Record<string, boolean>>({});
 
   const isValidIp = (ip: string) => {
-    // IPv4
     const parts4 = ip.split('.');
     if (parts4.length === 4) {
       return parts4.every((p) => {
@@ -63,7 +63,6 @@ export const DeviceSelector: React.FC<DeviceSelectorProps> = ({
         return !Number.isNaN(n) && n >= 0 && n <= 255 && String(n) === p;
       });
     }
-    // IPv6
     if (ip.includes(':')) {
       const hasBracketStart = ip.startsWith('[');
       const hasBracketEnd = ip.endsWith(']');
@@ -86,50 +85,49 @@ export const DeviceSelector: React.FC<DeviceSelectorProps> = ({
     e.preventDefault();
     const cleanIp = manualIp.trim();
     if (isValidIp(cleanIp)) {
-      onSelect(cleanIp);
+      const syntheticMac = `manual-${cleanIp}`;
+      onSelect(syntheticMac, cleanIp);
       setManualIp('');
     }
   };
 
-  const startEditing = (ip: string, currentName?: string) => {
-    setEditingIp(ip);
+  const startEditing = (mac: string, currentName?: string) => {
+    setEditingMac(mac);
     setTempName(currentName || '');
-    // Focus handled via ref after render
     setTimeout(() => editInputRef.current?.focus(), 0);
   };
 
-  const saveName = (ip: string) => {
-    onUpdateDeviceName(ip, tempName.trim());
-    setEditingIp(null);
+  const saveName = (mac: string) => {
+    onUpdateDeviceName(mac, tempName.trim());
+    setEditingMac(null);
   };
 
   const cancelEditing = () => {
-    setEditingIp(null);
+    setEditingMac(null);
     setTempName('');
   };
 
-  const handleEditKeyDown = (e: React.KeyboardEvent, ip: string) => {
-    if (e.key === 'Enter') saveName(ip);
+  const handleEditKeyDown = (e: React.KeyboardEvent, mac: string) => {
+    if (e.key === 'Enter') saveName(mac);
     if (e.key === 'Escape') cancelEditing();
   };
 
-  // Group helpers
-  const toggleGroupIpSelection = (ip: string) => {
-    setSelectedGroupIps((prev) =>
-      prev.includes(ip) ? prev.filter((item) => item !== ip) : [...prev, ip]
+  const toggleGroupMacSelection = (mac: string) => {
+    setSelectedGroupMacs((prev) =>
+      prev.includes(mac) ? prev.filter((item) => item !== mac) : [...prev, mac]
     );
   };
 
   const handleStartCreateGroup = () => {
     setGroupNameInput('');
-    setSelectedGroupIps([]);
+    setSelectedGroupMacs([]);
     setEditingGroupId(null);
     setIsCreatingGroup(true);
   };
 
   const handleStartEditGroup = (group: DeviceGroup) => {
     setGroupNameInput(group.name);
-    setSelectedGroupIps(group.deviceIps);
+    setSelectedGroupMacs(group.deviceMacs);
     setEditingGroupId(group.id);
     setIsCreatingGroup(false);
   };
@@ -138,15 +136,15 @@ export const DeviceSelector: React.FC<DeviceSelectorProps> = ({
     setIsCreatingGroup(false);
     setEditingGroupId(null);
     setGroupNameInput('');
-    setSelectedGroupIps([]);
+    setSelectedGroupMacs([]);
   };
 
   const handleSaveGroup = () => {
     if (!groupNameInput.trim()) return;
     if (editingGroupId) {
-      onUpdateGroup(editingGroupId, groupNameInput.trim(), selectedGroupIps);
+      onUpdateGroup(editingGroupId, groupNameInput.trim(), selectedGroupMacs);
     } else {
-      onCreateGroup(groupNameInput.trim(), selectedGroupIps);
+      onCreateGroup(groupNameInput.trim(), selectedGroupMacs);
     }
     handleCancelGroupForm();
   };
@@ -162,7 +160,6 @@ export const DeviceSelector: React.FC<DeviceSelectorProps> = ({
     return expandedGroups[groupId] !== false;
   };
 
-  // Dynamically estimate lightbulb colors and dropshadows based on active state parameters
   const getDeviceIconStyle = (device: LightDevice) => {
     const state = device.state;
     if (!state || !state.state) {
@@ -197,14 +194,22 @@ export const DeviceSelector: React.FC<DeviceSelectorProps> = ({
     };
   };
 
-  const ipsInGroups = groups.flatMap((g) => g.deviceIps);
+  const macsInGroups = groups.flatMap((g) => g.deviceMacs);
   const individualDevices = devices.filter(
-    (d) => !excludedIps.includes(d.ip) && !ipsInGroups.includes(d.ip)
+    (d) => !excludedMacs.includes(d.mac) && !macsInGroups.includes(d.mac)
   );
+
+  const getRoomDevices = (group: DeviceGroup) =>
+    group.deviceMacs
+      .filter((mac) => !excludedMacs.includes(mac))
+      .map((mac) => {
+        const device = devices.find((d) => d.mac === mac);
+        const ip = device?.ip || macToIp[mac] || '';
+        return { ip, mac, name: device?.name || deviceNames[mac] || 'Lámpara' };
+      });
 
   return (
     <div className="space-y-4">
-      {/* Header section */}
       <div className="flex items-center justify-between gap-2 border-b border-theme-border/60 pb-3 transition-colors duration-300">
         <h2 className="text-[11px] font-semibold uppercase tracking-[0.06em] text-theme-textSecondary font-display flex items-center gap-1.5 transition-colors duration-300 whitespace-nowrap flex-shrink-0">
           <Radio
@@ -227,7 +232,28 @@ export const DeviceSelector: React.FC<DeviceSelectorProps> = ({
         </button>
       </div>
 
-      {/* Formulario de Habitación (Crear / Editar) */}
+      {/* Manual IP entry */}
+      <form onSubmit={handleManualAdd} className="flex items-center gap-2">
+        <div className="relative flex-1">
+          <Globe className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-theme-textSecondary/60 pointer-events-none" />
+          <input
+            id={manualIpInputId}
+            type="text"
+            value={manualIp}
+            onChange={(e) => setManualIp(e.target.value)}
+            placeholder="Añadir IP manual..."
+            className="w-full bg-theme-input border border-theme-border rounded-full pl-8 pr-3 py-1.5 text-[11px] text-theme-text outline-none focus:border-theme-accent transition-colors"
+          />
+        </div>
+        <button
+          type="submit"
+          disabled={!isValidIp(manualIp.trim())}
+          className="p-1.5 rounded-full bg-theme-accent text-white hover:opacity-90 disabled:opacity-40 transition-opacity flex-shrink-0"
+        >
+          <Plus className="w-3.5 h-3.5" />
+        </button>
+      </form>
+
       {(isCreatingGroup || editingGroupId) && (
         <div className="p-3 bg-theme-input border border-theme-border rounded-[28px] space-y-3 transition-colors">
           <div className="flex items-center justify-between border-b border-theme-border/60 pb-2">
@@ -258,18 +284,18 @@ export const DeviceSelector: React.FC<DeviceSelectorProps> = ({
             <label className="text-[10px] font-semibold uppercase tracking-[0.05em] text-theme-textSecondary/80 block">Lámparas a incluir</label>
             <div className="max-h-32 overflow-y-auto custom-scrollbar border border-theme-border rounded-xl p-1 bg-theme-bg/50 space-y-0.5">
               {devices
-                .filter((d) => !excludedIps.includes(d.ip))
+                .filter((d) => !excludedMacs.includes(d.mac))
                 .map((device) => {
-                  const isChecked = selectedGroupIps.includes(device.ip);
+                  const isChecked = selectedGroupMacs.includes(device.mac);
                   return (
                     <label
-                      key={device.ip}
+                      key={device.mac}
                       className="flex items-center gap-2 px-2 py-1 rounded-lg hover:bg-theme-input cursor-pointer text-xs"
                     >
                       <input
                         type="checkbox"
                         checked={isChecked}
-                        onChange={() => toggleGroupIpSelection(device.ip)}
+                        onChange={() => toggleGroupMacSelection(device.mac)}
                         className="accent-theme-accent rounded border-theme-border w-3.5 h-3.5 cursor-pointer"
                       />
                       <div className="min-w-0 flex-1">
@@ -283,7 +309,7 @@ export const DeviceSelector: React.FC<DeviceSelectorProps> = ({
                     </label>
                   );
                 })}
-              {devices.filter((d) => !excludedIps.includes(d.ip)).length === 0 && (
+              {devices.filter((d) => !excludedMacs.includes(d.mac)).length === 0 && (
                 <div className="p-3 text-center text-[10px] text-theme-textSecondary/60">
                   No hay dispositivos activos disponibles.
                 </div>
@@ -311,9 +337,7 @@ export const DeviceSelector: React.FC<DeviceSelectorProps> = ({
         </div>
       )}
 
-      {/* Main scrolling section for groups and unassigned devices */}
       <div className="space-y-4 pt-1 pr-1">
-        {/* Rooms / Groups section */}
         <div className="space-y-2">
           <div className="flex items-center justify-between border-b border-theme-border/60 pb-2 transition-colors">
             <h3 className="text-[11px] font-semibold uppercase tracking-[0.06em] text-theme-textSecondary flex items-center gap-1.5">
@@ -354,11 +378,10 @@ export const DeviceSelector: React.FC<DeviceSelectorProps> = ({
               {groups.map((group) => {
                 const isSelected = selectedGroupId === group.id;
                 const expanded = isGroupExpanded(group.id);
-                const roomDevices = devices.filter((d) => group.deviceIps.includes(d.ip) && !excludedIps.includes(d.ip));
+                const roomDevices = getRoomDevices(group);
 
                 return (
                   <div key={group.id} className="space-y-1.5">
-                    {/* Group Header Card */}
                     <div
                       className={`group/room relative flex items-center gap-3 p-4 rounded-[28px] border transition-colors duration-300 cursor-pointer shadow-none ${isSelected
                           ? 'border-theme-border bg-theme-card ring-1 ring-inset ring-theme-text/20'
@@ -366,22 +389,19 @@ export const DeviceSelector: React.FC<DeviceSelectorProps> = ({
                         }`}
                       onClick={() => { onSelectGroup(group.id); toggleGroupExpanded(group.id); }}
                     >
-                      {/* Room icon — light, same proportions as device rows */}
                       <div className="flex-shrink-0 p-1.5 bg-theme-card rounded-full border border-theme-border/60 flex items-center justify-center">
                         <Home className="w-3 h-3 text-theme-textSecondary/60" />
                       </div>
 
-                      {/* Name + device count — gets all remaining space */}
                       <div className="flex-1 min-w-0">
                         <span className="font-semibold text-[13px] leading-snug text-theme-text truncate block">
                           {group.name}
                         </span>
                         <span className="text-[10px] text-theme-textSecondary block mt-0.5">
-                          {roomDevices.length} {roomDevices.length === 1 ? 'lámpara' : 'lámparas'}
+                          {roomDevices.filter((d) => !!d.ip).length} de {roomDevices.length} {roomDevices.length === 1 ? 'lámpara' : 'lámparas'}
                         </span>
                       </div>
 
-                      {/* Edit/delete — absolute so they never compress the name */}
                       <div className="absolute right-10 top-1/2 -translate-y-1/2 flex items-center gap-1 opacity-0 group-hover/room:opacity-100 transition-opacity duration-150 pointer-events-none group-hover/room:pointer-events-auto">
                         <button
                           type="button"
@@ -401,7 +421,6 @@ export const DeviceSelector: React.FC<DeviceSelectorProps> = ({
                         </button>
                       </div>
 
-                      {/* Permanent right: selected dot + chevron */}
                       <div className="flex items-center gap-1.5 flex-shrink-0">
                         {isSelected && (
                           <span className="group-hover/room:opacity-0 transition-opacity duration-150 w-1.5 h-1.5 rounded-full bg-theme-accent animate-pulse" />
@@ -416,25 +435,25 @@ export const DeviceSelector: React.FC<DeviceSelectorProps> = ({
                       </div>
                     </div>
 
-                    {/* Group Inner Devices List */}
                     {expanded && roomDevices.length > 0 && (
                       <div className="pl-3.5 space-y-1.5 border-l border-theme-border ml-[18px] py-1">
                         {roomDevices.map((device) => {
-                          const isDeviceSelected = device.ip === selectedIp && (!selectedGroupId || selectedGroupId === group.id);
-                          const isEditing = device.ip === editingIp;
-                          const iconStyle = getDeviceIconStyle(device);
+                          const isOnline = !!device.ip;
+                          const isDeviceSelected = device.mac === selectedMac && (!selectedGroupId || selectedGroupId === group.id);
+                          const isEditing = device.mac === editingMac && isOnline;
+                          const iconStyle = isOnline ? getDeviceIconStyle(device) : { className: 'text-theme-textSecondary opacity-30', style: {} };
 
                           return (
                             <div
-                              key={device.ip}
+                              key={device.mac}
                               className={`group relative z-0 flex items-center gap-2.5 p-3 rounded-[28px] border transition-colors duration-300 shadow-none ${isDeviceSelected
                                   ? 'border-theme-text/40 bg-theme-text/[0.04]'
                                   : 'border-theme-border/20 bg-theme-card/50 hover:bg-theme-input'
-                                }`}
+                                } ${!isOnline ? 'opacity-50' : ''}`}
                             >
                               <div
                                 className="flex-shrink-0 p-1.5 bg-theme-card rounded-full border border-theme-border flex items-center justify-center cursor-pointer"
-                                onClick={() => !isEditing && onSelect(device.ip)}
+                                onClick={() => !isEditing && onSelect(device.mac)}
                               >
                                 <Lightbulb
                                   className={`w-3.5 h-3.5 transition-[color,filter] duration-300 ${iconStyle.className}`}
@@ -444,7 +463,7 @@ export const DeviceSelector: React.FC<DeviceSelectorProps> = ({
 
                               <div
                                 className="flex-1 min-w-0 cursor-pointer"
-                                onClick={() => !isEditing && onSelect(device.ip)}
+                                onClick={() => !isEditing && onSelect(device.mac)}
                               >
                                 {isEditing ? (
                                   <div className="flex items-center gap-1.5">
@@ -453,13 +472,13 @@ export const DeviceSelector: React.FC<DeviceSelectorProps> = ({
                                       type="text"
                                       value={tempName}
                                       onChange={(e) => setTempName(e.target.value)}
-                                      onKeyDown={(e) => handleEditKeyDown(e, device.ip)}
+                                      onKeyDown={(e) => handleEditKeyDown(e, device.mac)}
                                       className="flex-1 min-w-0 bg-theme-input border border-theme-border rounded-full px-2 py-0.5 text-xs text-theme-text outline-none focus:border-theme-accent transition-colors"
                                     />
                                     <button
                                       onClick={(e) => {
                                         e.stopPropagation();
-                                        saveName(device.ip);
+                                        saveName(device.mac);
                                       }}
                                       className="p-1 hover:bg-theme-input rounded-full text-theme-green transition-colors"
                                     >
@@ -479,9 +498,12 @@ export const DeviceSelector: React.FC<DeviceSelectorProps> = ({
                                   <div className="flex flex-col min-w-0 pr-2">
                                     <span className="font-bold text-xs text-theme-text truncate block leading-tight tracking-apple-body">
                                       {device.name || 'Lámpara inteligente'}
+                                      {!isOnline && (
+                                        <span className="text-[10px] text-red-400/60 ml-2 font-normal">Sin conexión</span>
+                                      )}
                                     </span>
                                     <span className="text-[10px] text-theme-textSecondary/60 mt-0.5 truncate transition-opacity duration-200 group-hover:opacity-0">
-                                      {device.ip}
+                                      {device.ip || 'No disponible'}
                                     </span>
                                   </div>
                                 )}
@@ -493,7 +515,7 @@ export const DeviceSelector: React.FC<DeviceSelectorProps> = ({
                                     <button
                                       onClick={(e) => {
                                         e.stopPropagation();
-                                        startEditing(device.ip, device.name);
+                                        startEditing(device.mac, device.name);
                                       }}
                                       className="p-1.5 bg-theme-card hover:bg-theme-input border border-theme-border rounded-full text-theme-textSecondary hover:text-theme-text transition-colors duration-150 active:scale-95"
                                       title="Editar"
@@ -503,7 +525,7 @@ export const DeviceSelector: React.FC<DeviceSelectorProps> = ({
                                     <button
                                       onClick={(e) => {
                                         e.stopPropagation();
-                                        onExcludeDevice(device.ip);
+                                        onExcludeDevice(device.mac);
                                       }}
                                       className="p-1.5 bg-theme-card hover:bg-theme-input border border-theme-border rounded-full text-theme-textSecondary hover:text-red-400 transition-colors duration-150 active:scale-95"
                                       title="Excluir"
@@ -530,7 +552,6 @@ export const DeviceSelector: React.FC<DeviceSelectorProps> = ({
           )}
         </div>
 
-        {/* Individual devices section (unassigned) */}
         {individualDevices.length > 0 && (
           <div className="space-y-2">
             <h3 className="text-[11px] font-semibold uppercase tracking-[0.06em] text-theme-textSecondary flex items-center gap-1.5 border-b border-theme-border/60 pb-2 transition-colors">
@@ -540,13 +561,13 @@ export const DeviceSelector: React.FC<DeviceSelectorProps> = ({
 
             <div className="space-y-2.5">
               {individualDevices.map((device) => {
-                const isSelected = device.ip === selectedIp && !selectedGroupId;
-                const isEditing = device.ip === editingIp;
+                const isSelected = device.mac === selectedMac && !selectedGroupId;
+                const isEditing = device.mac === editingMac;
                 const iconStyle = getDeviceIconStyle(device);
 
                 return (
                   <div
-                    key={device.ip}
+                    key={device.mac}
                     className={`group relative z-0 flex items-center gap-2.5 p-3 rounded-[28px] border transition-colors duration-300 shadow-none ${isSelected
                         ? 'border-theme-text/40 bg-theme-text/[0.04]'
                         : 'border-theme-border/30 bg-theme-card hover:bg-theme-input'
@@ -554,7 +575,7 @@ export const DeviceSelector: React.FC<DeviceSelectorProps> = ({
                   >
                     <div
                       className="flex-shrink-0 p-1.5 bg-theme-card rounded-full border border-theme-border flex items-center justify-center cursor-pointer"
-                      onClick={() => !isEditing && onSelect(device.ip)}
+                      onClick={() => !isEditing && onSelect(device.mac)}
                     >
                       <Lightbulb
                         className={`w-3.5 h-3.5 transition-[color,filter] duration-300 ${iconStyle.className}`}
@@ -564,7 +585,7 @@ export const DeviceSelector: React.FC<DeviceSelectorProps> = ({
 
                     <div
                       className="flex-1 min-w-0 cursor-pointer"
-                      onClick={() => !isEditing && onSelect(device.ip)}
+                      onClick={() => !isEditing && onSelect(device.mac)}
                     >
                       {isEditing ? (
                         <div className="flex items-center gap-1.5">
@@ -573,13 +594,13 @@ export const DeviceSelector: React.FC<DeviceSelectorProps> = ({
                             type="text"
                             value={tempName}
                             onChange={(e) => setTempName(e.target.value)}
-                            onKeyDown={(e) => handleEditKeyDown(e, device.ip)}
+                            onKeyDown={(e) => handleEditKeyDown(e, device.mac)}
                             className="flex-1 min-w-0 bg-theme-input border border-theme-border rounded-full px-2.5 py-1 text-xs text-theme-text outline-none focus:border-theme-accent transition-colors"
                           />
                           <button
                             onClick={(e) => {
                               e.stopPropagation();
-                              saveName(device.ip);
+                              saveName(device.mac);
                             }}
                             className="p-1.5 hover:bg-theme-input rounded-full text-theme-green transition-colors"
                           >
@@ -621,7 +642,7 @@ export const DeviceSelector: React.FC<DeviceSelectorProps> = ({
                           <button
                             onClick={(e) => {
                               e.stopPropagation();
-                              startEditing(device.ip, device.name);
+                              startEditing(device.mac, device.name);
                             }}
                             className="p-1.5 bg-theme-card hover:bg-theme-input border border-theme-border rounded-full text-theme-textSecondary hover:text-theme-text transition-colors duration-150 active:scale-95"
                             title="Editar"
@@ -631,7 +652,7 @@ export const DeviceSelector: React.FC<DeviceSelectorProps> = ({
                           <button
                             onClick={(e) => {
                               e.stopPropagation();
-                              onExcludeDevice(device.ip);
+                              onExcludeDevice(device.mac);
                             }}
                             className="p-1.5 bg-theme-card hover:bg-theme-input border border-theme-border rounded-full text-theme-textSecondary hover:text-red-400 transition-colors duration-150 active:scale-95"
                             title="Excluir"
@@ -653,7 +674,6 @@ export const DeviceSelector: React.FC<DeviceSelectorProps> = ({
           </div>
         )}
 
-        {/* Global Empty State (no rooms and no individual devices) */}
         {groups.length === 0 && individualDevices.length === 0 && (
           <div className="flex flex-col items-center justify-center py-10 px-6 text-center border border-dashed border-theme-border rounded-[28px] bg-theme-input/20 space-y-4 transition-colors duration-300 shadow-none">
             <div className="p-3 bg-theme-card rounded-full border border-theme-border flex items-center justify-center">
@@ -661,112 +681,57 @@ export const DeviceSelector: React.FC<DeviceSelectorProps> = ({
             </div>
             <div className="space-y-1">
               <h4 className="text-[11px] font-semibold text-theme-text uppercase tracking-[0.06em]">
-                {devices.length > 0 ? 'Dispositivos ocultos' : 'Sin dispositivos'}
+                No se encontraron lámparas
               </h4>
-              <p className="text-[10px] text-theme-textSecondary leading-relaxed max-w-[200px] mx-auto tracking-apple-body-sm">
-                {devices.length > 0
-                  ? 'Todas las lámparas detectadas han sido excluidas de la vista.'
-                  : 'Haz clic en "Buscar" para rastrear lámparas inteligentes Wi-Fi en tu red.'}
+              <p className="text-[10px] text-theme-textSecondary/80 max-w-[200px] mx-auto">
+                Asegúrate de que las lámparas estén encendidas y en la misma red. También puedes añadir una dirección IP manualmente.
               </p>
             </div>
-            {devices.length === 0 && !isCreatingGroup && !editingGroupId && (
-              <button
-                type="button"
-                onClick={handleStartCreateGroup}
-                className="px-4 py-2 bg-theme-card hover:bg-theme-input border border-theme-border text-[10px] font-semibold rounded-full transition-colors flex items-center gap-1.5 text-theme-text shadow-none"
-              >
-                <Plus className="w-3 h-3" />
-                Crear Habitación
-              </button>
+          </div>
+        )}
+
+        {/* Excluded devices section */}
+        {excludedMacs.length > 0 && (
+          <div className="space-y-2">
+            <button
+              onClick={() => setShowExcluded(!showExcluded)}
+              className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-[0.06em] text-theme-textSecondary/70 hover:text-theme-textSecondary transition-colors border-b border-theme-border/60 pb-2 w-full"
+            >
+              <EyeOff className="w-3 h-3" />
+              Excluidas ({excludedMacs.length})
+              {showExcluded ? <ChevronUp className="w-3 h-3 ml-auto" /> : <ChevronDown className="w-3 h-3 ml-auto" />}
+            </button>
+            {showExcluded && (
+              <div className="space-y-1.5">
+                {excludedMacs.map((mac) => {
+                  const device = devices.find((d) => d.mac === mac);
+                  return (
+                    <div
+                      key={mac}
+                      className="flex items-center gap-2 p-3 rounded-[28px] border border-theme-border/20 bg-theme-card/30 opacity-60 hover:opacity-100 transition-opacity"
+                    >
+                      <Lightbulb className="w-3.5 h-3.5 text-theme-textSecondary" />
+                      <div className="flex-1 min-w-0">
+                        <span className="text-xs text-theme-textSecondary truncate block">
+                          {device?.name || deviceNames[mac] || 'Lámpara'}
+                        </span>
+                        <span className="text-[10px] text-theme-textSecondary/50">{device?.ip || mac}</span>
+                      </div>
+                      <button
+                        onClick={() => onIncludeDevice(mac)}
+                        className="p-1.5 bg-theme-card hover:bg-theme-input border border-theme-border rounded-full text-theme-textSecondary hover:text-theme-green transition-colors"
+                        title="Incluir"
+                      >
+                        <Eye className="w-3 h-3" />
+                      </button>
+                    </div>
+                  );
+                })}
+              </div>
             )}
           </div>
         )}
       </div>
-
-      {/* Collapsible excluded devices section */}
-      {excludedIps.length > 0 && (
-        <div className="border-t border-theme-border/60 pt-3">
-          <button
-            type="button"
-            onClick={() => setShowExcluded(!showExcluded)}
-            className="w-full flex items-center justify-between text-[11px] font-semibold uppercase tracking-[0.06em] text-theme-textSecondary hover:text-theme-text transition-colors pb-1 outline-none focus:text-theme-text"
-          >
-            <span className="flex items-center gap-1.5">
-              <EyeOff className="w-3.5 h-3.5 opacity-60" />
-              Dispositivos excluidos ({excludedIps.length})
-            </span>
-            {showExcluded ? (
-              <ChevronUp className="w-3.5 h-3.5 text-theme-textSecondary" />
-            ) : (
-              <ChevronDown className="w-3.5 h-3.5 text-theme-textSecondary/60" />
-            )}
-          </button>
-
-          {showExcluded && (
-            <div className="mt-2 space-y-2 max-h-32 overflow-y-auto custom-scrollbar pr-1 py-1">
-              {excludedIps.map((ip) => {
-                const device = devices.find((d) => d.ip === ip) || {
-                  ip,
-                  name: deviceNames[ip] || undefined,
-                };
-                return (
-                  <div
-                    key={ip}
-                    className="flex items-center gap-2.5 p-3 rounded-[28px] bg-theme-card border border-theme-border/30 text-xs transition-colors hover:bg-theme-input shadow-none"
-                  >
-                    <div className="flex-shrink-0 p-1.5 bg-theme-card rounded-full border border-theme-border flex items-center justify-center">
-                      <Lightbulb className="w-3.5 h-3.5 text-theme-textSecondary opacity-30" />
-                    </div>
-                    <div className="min-w-0 flex-1">
-                      <div className="font-semibold text-theme-text/60 truncate text-[11px] leading-tight">
-                        {device.name || 'Lámpara inteligente'}
-                      </div>
-                      <div className="text-[10px] text-theme-textSecondary/50 truncate mt-0.5">
-                        {device.ip}
-                      </div>
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() => onIncludeDevice(ip)}
-                      className="p-1.5 hover:bg-theme-input rounded-full text-theme-textSecondary hover:text-theme-accent transition-colors flex-shrink-0"
-                      title="Restaurar dispositivo"
-                      aria-label={`Restaurar dispositivo ${device.name || device.ip}`}
-                    >
-                      <Eye className="w-3.5 h-3.5" />
-                    </button>
-                  </div>
-                );
-              })}
-            </div>
-          )}
-        </div>
-      )}
-
-      {/* Manual IP input form */}
-      <form onSubmit={handleManualAdd} className="relative flex items-center group w-full pt-1.5">
-        <label htmlFor={manualIpInputId} className="sr-only">
-          Dirección IP manual
-        </label>
-        <div className="absolute left-3.5 text-theme-textSecondary opacity-40 group-focus-within:text-theme-accent group-focus-within:opacity-80 transition-colors duration-200 pointer-events-none">
-          <Globe className="w-3.5 h-3.5" />
-        </div>
-        <input
-          id={manualIpInputId}
-          type="text"
-          value={manualIp}
-          onChange={(e) => setManualIp(e.target.value)}
-          placeholder="Añadir IP manualmente..."
-          className="w-full bg-theme-input border border-theme-border rounded-full pl-9 pr-12 py-2.5 text-xs  text-theme-text placeholder-theme-textSecondary/60 outline-none focus:border-theme-accent transition-colors duration-300 shadow-none"
-        />
-        <button
-          type="submit"
-          disabled={!isValidIp(manualIp.trim())}
-          aria-label="Añadir dispositivo por IP"
-          className="absolute right-1.5 p-1.5 bg-theme-card hover:bg-theme-input border border-theme-border text-theme-text rounded-full transition-[color,opacity] duration-200 flex items-center justify-center active:scale-90 disabled:opacity-30 disabled:pointer-events-none shadow-none"
-        >
-          <Plus className="w-3.5 h-3.5" aria-hidden="true" />
-        </button>
-      </form>
     </div>
   );
 };
