@@ -1,5 +1,25 @@
 # Changelog
 
+## [0.5.1] — 2026-06-29
+
+### Chore
+- Add eslint dep, apply cargo fmt, fix two lint errors
+- Improve Homebrew cask for brew audit compliance
+
+## [0.5.0] — 2026-06-27
+
+### Features
+- **Identidad por MAC**: Migración completa de identificación de dispositivos de IP a MAC address, haciendo los dispositivos reconocibles incluso si cambian de IP.
+- **Polling Circadiano**: Nuevo hook `useCircadianPolling` para sincronización de temperatura de color con hora del día, eliminación de `useCircadianAutoClear`.
+- **Backend Rust**: Refactor mayor del backend con soporte para identidad MAC, 9 bugfixes y 6 optimizaciones de rendimiento.
+
+## [0.4.0] — 2026-06-26
+
+### Features
+- **Demo Interactiva**: Ventana flotante arrastrable y redimensionable con tráfico lights de macOS.
+- **Demo Responsive**: Diseño responsive con navegación de retroceso y panel dock.
+- **Hook `useMediaQuery`**: Nuevo hook utilitario para detectar media queries desde React.
+
 ## [0.3.10] — 2026-06-25
 
 ### Features
